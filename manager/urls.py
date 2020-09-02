@@ -14,6 +14,7 @@ urlpatterns = [
     # kitchen management
     url('api/kitchen$', views_kitchen.kitchenView.as_view()),
     url('api/kitchen/order$', views_kitchen.kitchendetailView.as_view()),
+    url('api/kitchen/search', views_kitchen.search),
     url('api/kitchen/detail', views_kitchen.kitchendetail.as_view()),
     url('api/kitchen/dish', views_kitchen.KitchenDish.as_view()),
     url('api/kitchen/workstation', views_kitchen.KitchenWorkstation.as_view()),

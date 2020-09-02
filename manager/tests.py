@@ -1,19 +1,14 @@
 from django.test import TestCase
 import dicttoxml, xmltodict, json
-
-# Create your tests here.
-dish_json = {
-    "name":"测试菜品",
-    "dish_pic":"er",
-    "time_cost":10,
-    "ingredients":[{"ingredient_name":"大肉", "ingredient_number":5}, {"ingredient_name":"大肉2", "ingredient_number":6}],
-    "dish_type":"测试",
-    "price":30,
-    "success":1,
-    "ingd_cost":10
-    }
-data = xmltodict.unparse(dish_json)
+import xml.etree.cElementTree as ET
+dish_json = {"current_dishes":[{"dish_id":101, "count":1}, {"dish_id":102, "count":1}]}
+data = dicttoxml.dicttoxml(dish_json, attr_type = False)
 print(data)
-json_dict = xmltodict.parse(data)
-json_str = json.loads(json_dict)
-print(json_str)
+
+jsonstr = xmltodict.parse(data)
+jsonstr = json.dumps(jsonstr)
+jsonstr = json.loads(jsonstr)
+print(jsonstr['root'])
+
+# #全局唯一标识 
+

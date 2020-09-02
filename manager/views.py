@@ -23,7 +23,7 @@ def kitchen_work():
     #     for current_dish in current_dishes:
     #         consume_time = dish.objects.get(dish_id = current_dish.dish_id).time_cost
     #         time_speed = order_choice_log.objects.all().last().param
-    #         if current_dish.count*consume_time = (datetime.now() - current_dish.start_time)*time_speed:
+    #         if current_dish.count*consume_time = ((datetime.now() - current_dish.start_time).total_seconds())/time_speed:
     #             print(current_dish.station_id, '有菜做完了!')
     #             # 修改相应的其他成本数据栏
     #             current_dish.dish_status = 2

@@ -7,6 +7,8 @@ from django.db.models import Max
 from django.db import transaction
 from django.db import IntegrityError
 from django.db.models import Sum, Count, Max, Min, Avg
+import json, xmltodict
+
 # Create your views here.
 '''
 获取所有菜 | GET | /dish
@@ -154,8 +156,10 @@ class dishdetailView(View):
             "dish_type":dish.dish_type,
             "price":dish.price,
             "success":dish.success,
-            "ingredient":ingredient,
+            "ingredients":ingredient,
         }
+        data = dicttoxml.dicttoxml(dish_dict, root = True, attr_type = False)
+        return http.HttpResponse(data)
         return http.JsonResponse(dish_dict)
     
     #修改某道菜的详细信息 --设置回滚

@@ -9,6 +9,8 @@ import numpy as np
 from pulp import *
 from datetime import datetime
 from manager.schedule_order import *
+import manager.dicttoxml as dicttoxml
+from manager.xml_to_dict import xml_to_dict
 
 # 进行与前台计算的转化，同时在初始化的时候需要向供应链发送原材料请求
 class dishingredient():
@@ -39,6 +41,7 @@ class dishingredient():
                 if ig_name in self.ingredient_all.keys():
                     self.ingredient_all[ig_name] += ig_detail['ingredient_number']*count
                 else:
+                    print(ig_detail['ingredient_number'])
                     self.ingredient_all[ig_name] = ig_detail['ingredient_number']*count
         return self.ingredient_all
 
@@ -159,10 +162,11 @@ class dish_menu_residue(View):
     def get(self, request):
         from manager.models import dish
         #获取用户现在得到的current_dishes, 并将XML解析为json
-        current_dishes = json.loads(request.body, strict = False)['current_dishes']
-    
+        dish_json = xml_to_dict(request)
+        current_dishes = dish_json['current_dishes']
         current_ingredient = dishingredient(current_dishes)
         dish_json = {"dishes":current_ingredient.left_current_ingredient()}
+        print(dish_json)
         data = dicttoxml.dicttoxml(dish_json, root = True, attr_type = False)
         return http.HttpResponse(data)
         return http.JsonResponse(dish_json)
@@ -170,15 +174,12 @@ class dish_menu_residue(View):
 # 堂食下单
 def add_order(request): 
     # ************将XML解析为Json*******
-    xml_load = request.body
-    json_dict = xmltodict.parse(xml_load)
-    print(json_dict)
-    dict_data = json.loads(request.body, strict = False)
+    dict_data = xml_to_dict(request)
     order_dish = dict_data['dishes']
     table_id = dict_data['table_id']
     serial_number = dict_data['serial']
     
-    dish_json = {"table_id": table_id, "success":1, "fail_dishes":[], "serial":serial_number}
+    dish_json = {"table_id": table_id, "success":1, "fail_dishes":None, "serial":serial_number}
     
     order_ingredient = dishingredient(order_dish)
     
@@ -197,7 +198,7 @@ def add_order(request):
             all_consumption_list.append(consumption)
         scm_order = {"order_id": max_id + 1, "order_type":0, "raw_material":all_consumption_list}
         # 向仓库发送POST请求 confirm_order_scm
-        url = 'http://127.0.0.1:8080/confirm_order_scm'
+        url = 'http://127.0.0.1:8080/g4/confirm_order_scm'
         r = requests.post(url, scm_order)
         # 向自己的数据库添加数据
         ## 在all_order_log中插入该条下单记录
@@ -210,156 +211,160 @@ def add_order(request):
         dish_json['success'] = 0
         dish_json['fail_dishes'] = order_ingredient.fail_dishes
 
-    return http.JsonResponse(dish_json)
+    data = dicttoxml.dicttoxml(dish_json, root = True, attr_type = False)
+    return http.HttpResponse(data)
 
 # 外卖下单
 def add_takeout(request): 
     # ************将XML解析为Json*******
 
-    dict_data = json.loads(request.body, strict = False)
+    dict_data = xml_to_dict(request)
     order_dish = dict_data['dishes']
     takeout_id = dict_data['takeout_id']
-    dish_json = {"takeout_id": takeout_id, "success":1, "fail_dishes":[]}
-    order_ingredient = dishingredient(order_dish)
+    dish_json = {"takeout_id": takeout_id, "success":1, "fail_dishes":None}
+    # order_ingredient = dishingredient(order_dish)
     
-    order_ingredient.left_order_ingredient()
-    # 下单失败
-    if len(order_ingredient.fail_dishes) > 0:
-        dish_json['success'] = 0
-        dish_json['fail_dishes'] = order_ingredient.fail_dishes
+    # order_ingredient.left_order_ingredient()
+    # # 下单失败
+    # if len(order_ingredient.fail_dishes) > 0:
+    #     dish_json['success'] = 0
+    #     dish_json['fail_dishes'] = order_ingredient.fail_dishes
     
-    else:
-        print('外卖预出库!')
-        # 外卖预出库
-        ## 发给供应链的格式转化
-        max_id = all_order_log.objects.all().aggregate(Max('order_id'))['order_id__max']
-        all_consumption = order_ingredient.ingredient_all
-        all_consumption_list = []
-        for item in all_consumption.keys():
-            consumption = {"ingredient_name":item, "ingredient_number":all_consumption[item]}
-            all_consumption_list.append(consumption)
-        scm_order = {"order_id": max_id + 1, "order_type":1, "raw_material":all_consumption_list}
-        # 向仓库发送POST请求 confirm_order_scm
-        url = 'http://127.0.0.1:8080/confirm_order_scm'
-        r = requests.post(url, scm_order)
-        # 向自己的数据库添加数据
-        ## 在all_order_log中插入该条下单记录
-        all_order_log.objects.create(order_id = max_id + 1, table_id = -1, serial = -1, takeout_id = takeout_id)
-        
-    return http.JsonResponse(dish_json)
+    # else:
+    #     print('外卖预出库!')
+    #     # 外卖预出库
+    #     ## 发给供应链的格式转化
+    #     max_id = all_order_log.objects.all().aggregate(Max('order_id'))['order_id__max']
+    #     all_consumption = order_ingredient.ingredient_all
+    #     all_consumption_list = []
+    #     for item in all_consumption.keys():
+    #         consumption = {"ingredient_name":item, "ingredient_number":all_consumption[item]}
+    #         all_consumption_list.append(consumption)
+    #     scm_order = {"order_id": max_id + 1, "order_type":1, "raw_material":all_consumption_list}
+    #     # 向仓库发送POST请求 confirm_order_scm
+    #     url = 'http://127.0.0.1:8080/confirm_order_scm'
+    #     r = requests.post(url, scm_order)
+    #     # 向自己的数据库添加数据
+    #     ## 在all_order_log中插入该条下单记录
+    #     all_order_log.objects.create(order_id = max_id + 1, table_id = -1, serial = -1, takeout_id = takeout_id)
+    
+    data = dicttoxml.dicttoxml(dish_json, root = True, attr_type = False)
+    return http.HttpResponse(data)
 
 # 外卖确认订单
 def confirm_takeout(request):
     # ************将XML解析为Json*******
 
-    dict_data = json.loads(request.body, strict = False)
+    dict_data = xml_to_dict(request)
     order_dish = dict_data['dishes']
     takeout_id = dict_data['takeout_id']
-    takeout_ingredient = dishingredient(order_dish)
-    all_consumption = order_ingredient.ingredient_all
-    all_consumption_list = []
-    for item in all_consumption.keys():
-        consumption = {"ingredient_name":item, "ingredient_number":all_consumption[item]}
-        all_consumption_list.append(consumption)
-    #提取之前的all_order_log的外卖单号
-    order_id_pre = all_order_log.objects.get(takeout_id = takeout_id).order_id
+    print(order_dish, takeout_id)
+    # takeout_ingredient = dishingredient(order_dish)
+    # all_consumption = order_ingredient.ingredient_all
+    # all_consumption_list = []
+    # for item in all_consumption.keys():
+    #     consumption = {"ingredient_name":item, "ingredient_number":all_consumption[item]}
+    #     all_consumption_list.append(consumption)
+    # #提取之前的all_order_log的外卖单号
+    # order_id_pre = all_order_log.objects.get(takeout_id = takeout_id).order_id
 
-    # 更新向供应链发的订单
-    scm_takeout = {"order_id": order_id_pre, "action":dict_data['action'], "raw_material":all_consumption_list}
-    url = 'http://127.0.0.1:8080/confirm_takeout_scm'
-    r = requests.post(url, scm_takeout)
+    # # 更新向供应链发的订单
+    # scm_takeout = {"order_id": order_id_pre, "action":dict_data['action'], "raw_material":all_consumption_list}
+    # url = 'http://127.0.0.1:8080/confirm_takeout_scm'
+    # r = requests.post(url, scm_takeout)
     
-    if dict_data['action'] == 0:
-        print('外卖正式出库！')
-        ## 添加到自己的订单细节数据集中
-    # *************传入参数为order_id, order_dish和对应下单选项， 调用后台排程算法，直接修改waiting_list和station_id********
-        KitchenUpdate = kitchen_update()
-        KitchenUpdate.order_update(order_id_pre, order_dish)
-    else:
-        print('外卖预定的原材料释放！')    
+    # if dict_data['action'] == 0:
+    #     print('外卖正式出库！')
+    #     ## 添加到自己的订单细节数据集中
+    # # *************传入参数为order_id, order_dish和对应下单选项， 调用后台排程算法，直接修改waiting_list和station_id********
+    #     KitchenUpdate = kitchen_update()
+    #     KitchenUpdate.order_update(order_id_pre, order_dish)
+    # else:
+    #     print('外卖预定的原材料释放！')    
     data = dicttoxml.dicttoxml({}, root = True, attr_type = False)
     return http.HttpResponse(data)
 
 # 催单
 def nudge(request):
-    dict_data = json.loads(request.body, strict = False)
+    dict_data = xml_to_dict(request)
     nudge_table_id = dict_data['table_id']
     nudge_serial = dict_data['serial']
     
-    nudge_order_id = all_order_log.objects.get(table_id = nudge_order_id, serial = nudge_serial).order_id
-    ## 已经催单，不需要再次调用了
-    if order_detail.objects.filter(order_id = 1).values('dish_status')[0]['dish_status'] == 1:
-        print("您之前已经催单!")
-        pass
-    else:
+    nudge_order_id = all_order_log.objects.get(table_id = nudge_table_id, serial = nudge_serial).order_id
+    # ## 已经催单，不需要再次调用了
+    # for order_detail.objects.filter(order_id = 1)
+    # if order_detail.objects.filter(order_id = 1).values('dish_status')[0]['dish_status'] == 1:
+    #     print("您之前已经催单!")
+    #     pass
+    # else:
         # *************传入参数为order_id， 调用后台排程算法，直接修改waiting_list和station_id********
         # 向后厨更新数据库
-        KitchenUpdate = kitchen_update()
-        KitchenUpdate.nudge_update(nudge_order_id)
-        print('后厨已接受您的催单!')
+    # KitchenUpdate = kitchen_update()
+    # KitchenUpdate.nudge_update(nudge_order_id)
+    print('后厨已接受您的催单!')
     data = dicttoxml.dicttoxml({}, root = True, attr_type = False)
     return http.HttpResponse(data)
 
 # 退菜
 def remove_order(request):
-    dict_data = json.loads(request.body, strict = False)
+    dict_data = xml_to_dict(request)
     remove_table_id = dict_data['table_id']
     remove_serial = dict_data['serial']
     remove_dishes = dict_data['dishes']
+    print(remove_dishes)
     
+    # remove_order_id = all_order_log.objects.get(table_id = remove_table_id, serial = remove_serial).order_id
     
-    remove_order_id = all_order_log.objects.get(table_id = remove_table_id, serial = remove_serial).order_id
-    
-    # 标注相应的退菜记录
-    for dish_detail in remove_dishes:
-        current_order_dish = order_detail.objects.get(order_id = remove_order_id, dish_id = dish_detail['dish_id'])
-        current_dish_status = current_order_dish.dish_status
+    # # 标注相应的退菜记录
+    # for dish_detail in remove_dishes:
+    #     current_order_dish = order_detail.objects.get(order_id = remove_order_id, dish_id = dish_detail['dish_id'])
+    #     current_dish_status = current_order_dish.dish_status
         
-        # 如果这份菜还没有开始做, 之后的菜提前
-        if current_dish_status == 0 or 1:
-            current_station = current_order_dish.station_id
-            current_wl = current_order_dish.waiting_list
-            # 将这道菜标为废弃
-            current_order_dish.update(dish_status = 3, waiting_list = -1)
-            # 将之后的菜提前WL一位
-            later_orders = order_detail.objects.filter(station_id = current_station, waiting_list__gte = current_wl)
-            for later_order in later_orders:
-                later_order.waiting_list = later_order.waiting_list - 1
+    #     # 如果这份菜还没有开始做, 之后的菜提前
+    #     if current_dish_status == 0 or 1:
+    #         current_station = current_order_dish.station_id
+    #         current_wl = current_order_dish.waiting_list
+    #         # 将这道菜标为废弃
+    #         current_order_dish.update(dish_status = 3, waiting_list = -1)
+    #         # 将之后的菜提前WL一位
+    #         later_orders = order_detail.objects.filter(station_id = current_station, waiting_list__gte = current_wl)
+    #         for later_order in later_orders:
+    #             later_order.waiting_list = later_order.waiting_list - 1
 
-        # 如果这份菜开始做了
-        elif current_dish_status == 4:
-        #提取开始做的时间，计算目前已经完成的菜数
-        # 需要修改到时候是用秒还是分钟!!!
-            time_speed = order_choice_log.objects.all().last().param
-            have_seconds = (datetime.now() - current_order_dish.finish_time).seconds/time_speed
-            current_dish = dish.objects.get(dish_id = dish_detail['dish_id'])
-            dish_time = current_dish.time_cost
-            require_seconds = dish_time*(current_order_dish.count - dish_detail['count'])
-            # 已经完全做完, 计算相应的已经花费的成本
-            if require_seconds <= have_seconds:
-                current_order_dish.update(dish_status = 3, waiting_list = -1, ingd_cost = have_seconds/dish_time*current_dish.ingd_cost)
-                # 将之后的菜提前WL一位
-                later_orders = order_detail.objects.filter(station_id = current_station, waiting_list__gte = current_wl)
-                for later_order in later_orders:
-                    later_order.waiting_list = later_order.waiting_list - 1
-                    # 如果修改滞后的WL值为1
-                    if later_order.waiting_list == 0:
-                        later_order.dish_status = 4
-                        later_order.start_time = datetime.now()
-                    later_order.save()
+    #     # 如果这份菜开始做了
+    #     elif current_dish_status == 4:
+    #     #提取开始做的时间，计算目前已经完成的菜数
+    #     # 需要修改到时候是用秒还是分钟!!!
+    #         time_speed = order_choice_log.objects.all().last().param
+    #         have_seconds = (datetime.now() - current_order_dish.finish_time).seconds/time_speed
+    #         current_dish = dish.objects.get(dish_id = dish_detail['dish_id'])
+    #         dish_time = current_dish.time_cost
+    #         require_seconds = dish_time*(current_order_dish.count - dish_detail['count'])
+    #         # 已经完全做完, 计算相应的已经花费的成本
+    #         if require_seconds <= have_seconds:
+    #             current_order_dish.update(dish_status = 3, waiting_list = -1, ingd_cost = have_seconds/dish_time*current_dish.ingd_cost)
+    #             # 将之后的菜提前WL一位
+    #             later_orders = order_detail.objects.filter(station_id = current_station, waiting_list__gte = current_wl)
+    #             for later_order in later_orders:
+    #                 later_order.waiting_list = later_order.waiting_list - 1
+    #                 # 如果修改滞后的WL值为1
+    #                 if later_order.waiting_list == 0:
+    #                     later_order.dish_status = 4
+    #                     later_order.start_time = datetime.now()
+    #                 later_order.save()
 
-            # 剩余的并没有完全做完
-            elif require_seconds > have_seconds:
-                # 更新剩余的原材料份数
-                ## 这种情况不算废弃, 因为剩余的仍然需要处理
-                current_order_dish.count = current_order_dish.count - dish_detail['count']
-                current_order_dish.save()            
+    #         # 剩余的并没有完全做完
+    #         elif require_seconds > have_seconds:
+    #             # 更新剩余的原材料份数
+    #             ## 这种情况不算废弃, 因为剩余的仍然需要处理
+    #             current_order_dish.count = current_order_dish.count - dish_detail['count']
+    #             current_order_dish.save()            
 
-        elif current_dish_status == 3:
-            print('已经删了哥哥！')
+    #     elif current_dish_status == 3:
+    #         print('已经删了哥哥！')
         
-        elif current_dish_status == 2:
-            print("已经做完送给你了, 退单想都别想！")
+    #     elif current_dish_status == 2:
+    #         print("已经做完送给你了, 退单想都别想！")
     data = dicttoxml.dicttoxml({}, root = True, attr_type = False)
     return http.HttpResponse(data)
     

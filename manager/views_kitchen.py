@@ -63,12 +63,14 @@ class KitchenDish(View):
         for order in orders:
             order = {
                 'order_id': order.order_id.pk,
+                'order_type': all_order_log.objects.get(order_id=order.order_id.pk).order_type,
                 'dish_id': order.dish_id,
                 'dish_name': dish.objects.get(dish_id = order.dish_id).name,
                 'count': order.count,
                 'create_time': order.create_time.strftime('%Y%m%d %H:%M:%S'),
                 'dish_status': order.dish_status,
                 'station_id': order.station_id,
+                'waiting_list':order.waiting_list
             }
             dishes_list.append(order)
         return http.JsonResponse({"dishes":dishes_list}, safe=False)
@@ -158,10 +160,12 @@ class KitchenWorkstation(View):
             for order in orders:
                 order = {
                     'order_id': order.order_id.pk,
+                    'order_type': all_order_log.objects.get(order_id=order.order_id.pk).order_type,
                     'dish_id': order.dish_id,
                     'dish_name': dish.objects.get(dish_id = order.dish_id).name,
                     'count': order.count,
                     'create_time': order.create_time.strftime('%Y%m%d %H:%M:%S'),
+                    "station_id":order.station_id,
                     'dish_status': order.dish_status,
                     'waiting_list': order.waiting_list,
                 }
@@ -194,8 +198,32 @@ class kitchendetail(View):
         except Exception as e:
             print(Exception)
             return http.HttpResponse(status = 404)
-       
 
+# 模糊查询的接口   
+def search(request):
+    dict_data = json.loads(request.body, strict = False)
+    select_order = []
+    ## 搜寻到最终需要满足的要求
+    select_dishes = order_detail.objects.all()
+    for dict_key in dict_data.keys():
+        if dict_data[dict_key] is not None:
+            select_dishes.filter(dict_key = dict_data[dict_key])
+    # 搜寻完成
+    Finish_list = []
+    for order in finish_orders:
+        order = {
+            'order_id': order.order_id.pk,
+            'table_id':all_order_log.objects.get(order_id = order.order_id.pk).table_id,
+            'takeout_id':all_order_log.objects.get(order_id = order.order_id.pk).takeout,
+            'dish_id': dish.objects.get(dish_id = order.dish_id).name,
+            'count': order.count,
+            'create_time': order.create_time.strftime('%Y%m%d %H:%M:%S'),
+            'dish_status': order.dish_status,
+            'station_id': order.station_id,
+            'waiting_list': order.waiting_list,
+        }
+        Finish_list.append(order)
+        return http.JsonResponse({"dishes": Finish_list}, safe=False)
 
 ## 待删*************************
 class KitchenFinish(View):
