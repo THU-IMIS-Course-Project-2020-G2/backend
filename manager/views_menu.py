@@ -8,7 +8,7 @@ import json, dicttoxml, xmltodict, requests
 import numpy as np
 from pulp import *
 from datetime import datetime
-from manager.schedule_order import kitchen_update
+from manager.schedule_order import *
 
 # 进行与前台计算的转化，同时在初始化的时候需要向供应链发送原材料请求
 class dishingredient():

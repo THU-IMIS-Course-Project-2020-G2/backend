@@ -8,6 +8,7 @@ import json, dicttoxml, xmltodict, requests
 import numpy as np
 from pulp import *
 from datetime import datetime
+from manager.param import *
 
 #根据新的下单, 催单, 更新排班情况
 ## 简单随机算法
@@ -16,9 +17,9 @@ class kitchen_update():
     def __init__(self):
     # 读取现在的后厨做菜信息
     ## 目前采用冷菜1-3 + 热菜4-7
-        self.all_station_number = 7
-        self.cold_station_number = 3
-        self.hot_station_number = 4
+        self.all_station_number = all_number
+        self.cold_station_number = cold_number
+        self.hot_station_number = hot_number
     ## 对每个工位更新为(order_id, dish_id, require_time, priority)的四元数组
     ## station_id + waiting_list能唯一确定(order_id, dish_id)
         self.station_info = [[] for i in range(self.all_station_number)]

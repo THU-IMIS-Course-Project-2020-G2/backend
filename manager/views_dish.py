@@ -6,6 +6,7 @@ import json, requests
 from django.db.models import Max
 from django.db import transaction
 from django.db import IntegrityError
+from django.db.models import Sum, Count, Max, Min, Avg
 # Create your views here.
 '''
 获取所有菜 | GET | /dish
@@ -55,6 +56,7 @@ class dishView(View):
         
         # 获取参数
         dict_data = json.loads(request.body, strict = False)
+        print(dict_data)
         # 理论上没有dish_id,需要根据类别手动调整
         ## 获取所有的类
         all_dish_type = dish.objects.values("dish_type").distinct()
@@ -73,11 +75,12 @@ class dishView(View):
             dict_data['dish_id'] = (int(max_id/100) + 1)*100 + 1
         
         add_info = {'dish_id':dict_data['dish_id'], 'add_status':1}
-        
+        print('wtf1')
         ## 这一类菜品数量太多
         if dict_data['dish_id']%100 == 0:
             add_info['add_status'] = 0
             return http.JsonResponse(add_info)
+        print('wtf2')
         name = dict_data.get('name')
         dish_pic = dict_data.get('dish_pic')
         time_cost = dict_data.get('time_cost')
@@ -97,9 +100,9 @@ class dishView(View):
         ## 首先去除原材料的数据
             with transaction.atomic():
                 del dict_data['ingredients']
-                print(dict_data['dish_id'])
-                dish_info = dish.objects.create(**dict_data)
                 
+                dish_info = dish.objects.create(**dict_data)
+                print(dict_data['dish_id'])
                 # 数据入库（入材料库）
                 for ingredient_detail in ingredients:
                     #print(ingredient_detail)
@@ -132,7 +135,7 @@ class dishdetailView(View):
         
         try:
             dish = dish.objects.get(dish_id = pk)
-            ingredient_list = dish_ingredient.objects.filter(dish_id = pk)
+            ingredient_list = dish_ingredient.objects.filter(dish_id_id = pk)
         except Exception as e:
             return http.HttpResponse(status = 404)
         ingredient = []
@@ -225,6 +228,58 @@ class dishdetailView(View):
         }
         return http.JsonResponse(delete_info)
 
+#对菜的具体信息进行模糊查询
+def dish_search(request):
+    from manager.models import dish, dish_ingredient
+    dict_data = json.loads(request.body, strict = False)
+    print(dict_data)
+    select_dishid = []
+    ## 搜寻到最终需要满足的要求
+    select_dishes = dish.objects.all()
+    for dict_key in dict_data.keys():
+        if dict_data[dict_key] is not None:
+            if dict_key == 'time_cost_ub':
+                select_dishes = select_dishes.filter(time_cost__lte = dict_data[dict_key])
+            elif dict_key == 'time_cost_lb':
+                select_dishes = select_dishes.filter(time_cost_gte = dict_data[dict_key])
+            elif dict_key == 'price_ub':
+                #print(select_dishes)
+                select_dishes = select_dishes.filter(price__lte = dict_data[dict_key])
+                #print(select_dishes)
+            elif dict_key == 'price_lb':
+                select_dishes = select_dishes.filter(price__gte = dict_data[dict_key])
+            ## 对原材料种类的模糊查询
+            elif dict_key == 'ingredients':
+                ## 返回满足条件的含有该种原材料的查询结果, 返回全部满足条件的dish_id
+                select_dish_ig_list = dish_ingredient.objects.filter(ingredient_name__contains = dict_data[dict_key]).values('dish_id').distinct()
+                select_dishid = [dish['dish_id'] for dish in select_dish_ig_list]
+            else:
+                # 其他种类的模糊查询
+                if dict_key == 'name':
+                    select_dishes = select_dishes.filter(name__contains = dict_data[dict_key])
+                elif dict_key == 'dish_type':
+                    select_dishes = select_dishes.filter(dish_type__contains = dict_data[dict_key])
+                elif dict_key == 'success':
+                    select_dishes = select_dishes.filter(success = dict_data[dict_key])
+    query_dish = []
+    
+    # 和原材料的最终交的查询
+    for select_dish in select_dishes:
+        #在原材料的部分里
+        #print(select_dish)
+        if len(select_dishid) == 0 or select_dish.dish_id in select_dishid:
+            dish = {
+                "dish_id":select_dish.dish_id,
+                "name":select_dish.name,
+                "time_cost":select_dish.time_cost,
+                "dish_type":select_dish.dish_type,
+                "price":select_dish.price,
+                "success":select_dish.success,
+            }
+            query_dish.append(dish)
+    return http.JsonResponse({"dishes":query_dish})
+
+
 class dishpriceView(View):
         
     def put(self, request, pk):
@@ -250,24 +305,42 @@ class dishpriceView(View):
         return http.JsonResponse(edit_info)        
 
 #分类查询
-def search_type(request):
-    from manager.models import dish, dish_ingredient
-    dict_data = json.loads(request.body, strict = False)
-    print(dict_data)
-#    all_dishes = dish.objects.filter(dish_type = dict_data['params']['query'])
-    all_dishes = dish.objects.filter(dish_type = dict_data['dish_type'])
-    dish_list = []
-    for dish in all_dishes:
-        dish = {
-            "dish_id":dish.dish_id,
-            "name":dish.name,
-            "time_cost":dish.time_cost,
-            "dish_type":dish.dish_type,
-            "price":dish.price,
-            "success":dish.success,
-        }
-        dish_list.append(dish)
-    return http.JsonResponse({"dishes":dish_list}, safe = False)
+class dishtypeView(View):
+    ## 初始的统计信息
+    def get(self, request):
+        from manager.models import dish, dish_ingredient
+        dish_type_all = dish.objects.all().values('dish_type').distinct()
+        dish_type_all = [dishtype['dish_type'] for dishtype in dish_type_all]
+        dishes = []
+        ## 加入各类菜的种类和个数信息
+        for dishtype in dish_type_all:
+            dish_dict = dict()
+            dish_dict['dish_type'] = dishtype
+            dish_dict['count'] = dish.objects.filter(dish_type = dishtype).aggregate(Count('dish_id'))['dish_id__count']
+            dishes.append(dish_dict)
+        print(dishes)
+        return http.JsonResponse({"dishes":dishes})
+
+
+    ## 点进去每一个的详细信息
+    def post(self, request):
+        from manager.models import dish, dish_ingredient
+        dict_data = json.loads(request.body, strict = False)
+        print(dict_data)
+    #    all_dishes = dish.objects.filter(dish_type = dict_data['params']['query'])
+        all_dishes = dish.objects.filter(dish_type = dict_data['dish_type'])
+        dish_list = []
+        for dish in all_dishes:
+            dish = {
+                "dish_id":dish.dish_id,
+                "name":dish.name,
+                "time_cost":dish.time_cost,
+                "dish_type":dish.dish_type,
+                "price":dish.price,
+                "success":dish.success,
+            }
+            dish_list.append(dish)
+        return http.JsonResponse({"dishes":dish_list}, safe = False)
 
 def search_price(request):
     from manager.models import dish, dish_ingredient
