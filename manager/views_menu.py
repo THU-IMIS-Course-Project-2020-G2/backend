@@ -4,7 +4,7 @@ from django import http
 from django.views import View
 from django.core import serializers
 from django.db.models import Sum, Count, Max, Min, Avg
-import json, dicttoxml, xmltodict, requests
+import json, xmltodict, requests
 import numpy as np
 from pulp import *
 from datetime import datetime
@@ -18,12 +18,17 @@ class dishingredient():
         from manager.models import dish, dish_ingredient
         # 向仓库发送剩余所有原材料的请求
         ## 真实代码应该如下[未完]:
-        '''
-        supply_url = "http://127.0.0.1:8080/material"
+        
+        supply_url = "http://127.0.0.1:8080/g4/material"
         r = requests.get(supply_url)
-        '''
+        all_material = xml_to_dict(r)['raw_material']
+        # 转化为如下的测试样例的样子
+        self.all_remain_ingredient = dict()
+        for ig_detail in all_material:
+            self.all_remain_ingredient[ig_detail['ingredient_name']] = float(ig_detail['ingredient_number']) 
+        
         # 这只是一个测试样例
-        self.all_remain_ingredient = {'白条净膛鹅（克）': 300.0, '白萝卜（克）': 900.0, '茅台（瓶）': 1.0, '梭子蟹（克）': 250.0, '花蛤（克）': 1200.0, '扇贝（地播）（克）': 500.0, '白条湖鸭（克）': 700.0, '五花肉（瘦）（克）': 1750.0, '荔浦芋头（克）': 300.0, '鸡蛋（只）': 200.0, '胡萝卜（克）': 150.0, '绿菜花（克 ）': 900.0, '空心菜（克）': 300.0}
+        # self.all_remain_ingredient = {'白条净膛鹅（克）': 300.0, '白萝卜（克）': 900.0, '茅台（瓶）': 1.0, '梭子蟹（克）': 250.0, '花蛤（克）': 1200.0, '扇贝（地播）（克）': 500.0, '白条湖鸭（克）': 700.0, '五花肉（瘦）（克）': 1750.0, '荔浦芋头（克）': 300.0, '鸡蛋（只）': 200.0, '胡萝卜（克）': 150.0, '绿菜花（克 ）': 900.0, '空心菜（克）': 300.0}
         self.remaining_ingredient = self.all_remain_ingredient.copy()
         self.current_dishes = current_dishes
         self.fail_dishes = []
@@ -34,14 +39,14 @@ class dishingredient():
         
         for dish_detail in self.current_dishes:
             dish_id = dish_detail['dish_id']
-            count = dish_detail['count']
+            count = int(dish_detail['count'])
             ig_list = dish_ingredient.objects.filter(dish_id = dish_id).values('ingredient_name', 'ingredient_number')
             for ig_detail in ig_list:
                 ig_name = ig_detail['ingredient_name']
                 if ig_name in self.ingredient_all.keys():
                     self.ingredient_all[ig_name] += ig_detail['ingredient_number']*count
                 else:
-                    print(ig_detail['ingredient_number'])
+                    #print(ig_detail['ingredient_number'], count, type(ig_detail['ingredient_number']), type(count))
                     self.ingredient_all[ig_name] = ig_detail['ingredient_number']*count
         return self.ingredient_all
 
@@ -49,13 +54,14 @@ class dishingredient():
     def left_current_ingredient(self):
         # 向供应链发出GET请求，获取所有剩余原材料
         # 这只是一个测试样例
-        all_remain_ingredient = {'白条净膛鹅（克）': 300.0, '白萝卜（克）': 900.0, '茅台（瓶）': 1.0, '梭子蟹（克）': 250.0, '花蛤（克）': 1200.0, '扇贝（地播）（克）': 500.0, '白条湖鸭（克）': 700.0, '五花肉（瘦）（克）': 1750.0, '荔浦芋头（克）': 300.0, '鸡蛋（只）': 200.0, '胡萝卜（克）': 150.0, '绿菜花（克 ）': 900.0, '空心菜（克）': 300.0}
-        remaining_ingredient = all_remain_ingredient.copy()
+        # all_remain_ingredient = {'白条净膛鹅（克）': 300.0, '白萝卜（克）': 900.0, '茅台（瓶）': 1.0, '梭子蟹（克）': 250.0, '花蛤（克）': 1200.0, '扇贝（地播）（克）': 500.0, '白条湖鸭（克）': 700.0, '五花肉（瘦）（克）': 1750.0, '荔浦芋头（克）': 300.0, '鸡蛋（只）': 200.0, '胡萝卜（克）': 150.0, '绿菜花（克 ）': 900.0, '空心菜（克）': 300.0}
+        remaining_ingredient = self.all_remain_ingredient.copy()
         # 目前下单需要的dish
         current_dish_ingredient = self.dish_to_ingredient()
         # remain = all - dish
         for dish_ig in current_dish_ingredient.keys():
             dish_number = current_dish_ingredient[dish_ig]
+            #print(type(dish_number))
             self.remaining_ingredient[dish_ig] -= dish_number
 
         dish_id_list = dish.objects.all().values('dish_id')
@@ -87,8 +93,8 @@ class dishingredient():
     def fail_dish_selection(self, short_ingredient):
         print(self.current_dishes, short_ingredient)
         
-        dish_id_list = [self.current_dishes[i]['dish_id'] for i in range(len(self.current_dishes))]
-        dish_id_max = [self.current_dishes[i]['count'] for i in range(len(self.current_dishes))]
+        dish_id_list = [int(self.current_dishes[i]['dish_id']) for i in range(len(self.current_dishes))]
+        dish_id_max = [int(self.current_dishes[i]['count']) for i in range(len(self.current_dishes))]
         dish_id_price = [dish.objects.get(dish_id = did).price for did in dish_id_list]
 
         # 使退菜的损失总价格最小
@@ -107,16 +113,22 @@ class dishingredient():
                 if dish_id_list[i] in dish_ig:
                     A[j][i] = dish_ingredient.objects.get(dish_id = dish_id_list[i], ingredient_name = ig_name).ingredient_number
             model += lpSum([A[j][i]*x[dish_id_list[i]] for i in range(len(dish_id_list))])>=short_ingredient[ig_name]      
-        
+        print(A)
         # 优化求解
         model.solve()
+        self.fail_dishes = []
         count = 0
-        res_dict = dict()
+        
         for v in model.variables():
-            res_dict[dish_id_list[count]] = v.varValue
+            ## 只给出fail_dishes的数据
+            if v.varValue > 0:
+                res_dict = dict()
+                res_dict['dish_id'] = dish_id_list[count]
+                res_dict['count'] = v.varValue        
+                self.fail_dishes.append(res_dict)
             count += 1
-
-        self.fail_dishes = res_dict
+        # print(res_dict)
+        # self.fail_dishes = res_dict
 
         
     # 考虑下单的情况
@@ -126,6 +138,7 @@ class dishingredient():
         current_dish_ingredient = self.dish_to_ingredient()
         # remain = all - dish
         short_ingredient = dict()
+        print(current_dish_ingredient, self.remaining_ingredient)
         for dish_ig in current_dish_ingredient.keys():
             dish_number = current_dish_ingredient[dish_ig]
             self.remaining_ingredient[dish_ig] -= dish_number
@@ -176,6 +189,7 @@ def add_order(request):
     # ************将XML解析为Json*******
     dict_data = xml_to_dict(request)
     order_dish = dict_data['dishes']
+    print(order_dish)
     table_id = dict_data['table_id']
     serial_number = dict_data['serial']
     
@@ -184,7 +198,7 @@ def add_order(request):
     order_ingredient = dishingredient(order_dish)
     
     order_ingredient.left_order_ingredient()
-    
+    print(order_ingredient.ingredient_all)
     # 下单成功, 向仓库发出库单
     if len(order_ingredient.fail_dishes) == 0:
         print('向仓库发出库单!')
@@ -196,13 +210,15 @@ def add_order(request):
         for item in all_consumption.keys():
             consumption = {"ingredient_name":item, "ingredient_number":all_consumption[item]}
             all_consumption_list.append(consumption)
+        print(all_consumption_list)
         scm_order = {"order_id": max_id + 1, "order_type":0, "raw_material":all_consumption_list}
+        scm_order = dicttoxml.dicttoxml(scm_order, root = True, attr_type = False)
         # 向仓库发送POST请求 confirm_order_scm
         url = 'http://127.0.0.1:8080/g4/confirm_order_scm'
         r = requests.post(url, scm_order)
         # 向自己的数据库添加数据
         ## 在all_order_log中插入该条下单记录
-        all_order_log.objects.create(order_id = max_id + 1, table_id = table_id, serial = serial_number, takeout_id = -1)
+        all_order_log.objects.create(order_id = max_id + 1, order_type = 0, table_id = table_id, serial = serial_number, takeout = -1)
 # *************传入参数为order_dish， 调用后台排程算法，返回waiting_list和station_id********
         KitchenUpdate = kitchen_update()
         KitchenUpdate.order_update(max_id + 1, order_dish)
@@ -222,31 +238,33 @@ def add_takeout(request):
     order_dish = dict_data['dishes']
     takeout_id = dict_data['takeout_id']
     dish_json = {"takeout_id": takeout_id, "success":1, "fail_dishes":None}
-    # order_ingredient = dishingredient(order_dish)
+    order_ingredient = dishingredient(order_dish)
     
-    # order_ingredient.left_order_ingredient()
-    # # 下单失败
-    # if len(order_ingredient.fail_dishes) > 0:
-    #     dish_json['success'] = 0
-    #     dish_json['fail_dishes'] = order_ingredient.fail_dishes
+    order_ingredient.left_order_ingredient()
+    # 下单失败
+    if len(order_ingredient.fail_dishes) > 0:
+        dish_json['success'] = 0
+        dish_json['fail_dishes'] = order_ingredient.fail_dishes
     
-    # else:
-    #     print('外卖预出库!')
-    #     # 外卖预出库
-    #     ## 发给供应链的格式转化
-    #     max_id = all_order_log.objects.all().aggregate(Max('order_id'))['order_id__max']
-    #     all_consumption = order_ingredient.ingredient_all
-    #     all_consumption_list = []
-    #     for item in all_consumption.keys():
-    #         consumption = {"ingredient_name":item, "ingredient_number":all_consumption[item]}
-    #         all_consumption_list.append(consumption)
-    #     scm_order = {"order_id": max_id + 1, "order_type":1, "raw_material":all_consumption_list}
-    #     # 向仓库发送POST请求 confirm_order_scm
-    #     url = 'http://127.0.0.1:8080/confirm_order_scm'
-    #     r = requests.post(url, scm_order)
-    #     # 向自己的数据库添加数据
-    #     ## 在all_order_log中插入该条下单记录
-    #     all_order_log.objects.create(order_id = max_id + 1, table_id = -1, serial = -1, takeout_id = takeout_id)
+    else:
+        print('外卖预出库!')
+        # 外卖预出库
+        ## 发给供应链的格式转化
+        max_id = all_order_log.objects.all().aggregate(Max('order_id'))['order_id__max']
+        all_consumption = order_ingredient.ingredient_all
+        all_consumption_list = []
+        for item in all_consumption.keys():
+            consumption = {"ingredient_name":item, "ingredient_number":all_consumption[item]}
+            all_consumption_list.append(consumption)
+        print(all_consumption_list)
+        scm_order = {"order_id": max_id + 1, "order_type":1, "raw_material":all_consumption_list}
+        scm_order = dicttoxml.dicttoxml(scm_order, root = True, attr_type = False)
+        # 向仓库发送POST请求 confirm_order_scm
+        url = 'http://127.0.0.1:8080/confirm_order_scm'
+        r = requests.post(url, scm_order)
+        # 向自己的数据库添加数据
+        ## 在all_order_log中插入该条下单记录
+        all_order_log.objects.create(order_id = max_id + 1, table_id = -1, serial = -1, takeout = takeout_id)
     
     data = dicttoxml.dicttoxml(dish_json, root = True, attr_type = False)
     return http.HttpResponse(data)

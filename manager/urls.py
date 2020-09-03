@@ -1,5 +1,5 @@
 from django.conf.urls import url
-from manager import views_dish, views_menu, views_kitchen, views_test, views_order_param
+from manager import tests, views_dish, views_menu, views_kitchen, views_test, views_order_param
 
 # dish + cook
 urlpatterns = [
@@ -31,6 +31,8 @@ urlpatterns = [
     url('remove_order', views_menu.remove_order), 
 
     # self test with menu, supply chain and robots
+    url('g4/material', tests.material_request),
+    url('g4/confirm_order_scm', tests.order_request),
     url('finish_dish', views_test.finish_order)
     
 ]

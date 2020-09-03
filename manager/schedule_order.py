@@ -27,15 +27,19 @@ class kitchen_update():
         ## 找到目前在等的所有单号的信息, 将这些作为一个字典的键
         id_list = order_detail.objects.filter(waiting_list__gt = 0).values("order_id").distinct()
         order_key = [id_serial['order_id'] for id_serial in id_list]
+
+        ## order_wt这个变量表示目前在等的单号的单的等待时间的最小值
         self.order_wt = dict()
         ## 对这个字典的每个键赋初值, 值包括(station_id, station_loc, waiting_time)
         for id_key in order_key:
             self.order_wt[id_key] = {"sid":0, "sloc":0, "waiting_time":10000}
+
         for sid in range(self.all_station_number):
         # 读取该工位的最长WL, 先判断sid除了当前正在做的菜是否为空
             sid_list = order_detail.objects.filter(station_id = sid + 1)
             if len(sid_list)> 0: 
                 max_wl = sid_list.aggregate(Max('waiting_list'))['waiting_list__max']
+                print("max_wl",max_wl)
                 ## 找到目前正在做的菜, 最多只会存在一个                
                 current_dish = order_detail.objects.filter(station_id = sid + 1, dish_status = 4)
                 ### 目前该工位没有正在做的菜
@@ -47,20 +51,24 @@ class kitchen_update():
                     consume_time = dish.objects.get(dish_id = current_dish[0].dish_id).time_cost
                     current_waiting_time = current_dish[0].count*consume_time - (datetime.now() - current_dish[0].start_time).total_seconds()/time_speed
                     for i in range(1, max_wl + 1):
-                        temp_dish = order_detail.objects.get(station_id = sid, waiting_list = i)
+                        print(sid + 1, i)
+                        temp_dish = order_detail.objects.get(station_id = sid + 1, waiting_list = i)
                         dish_info = dish.objects.get(dish_id = temp_dish.dish_id)
                         current_waiting_time += dish_info.time_cost*temp_dish.count
                         # flag表示是否为当前等待工位最先等待的菜, True表示是最先等待的菜
                         ## 判断是否为当前等待时间最小的菜
-                        if order_wt[temp_dish.order_id.pk]["waiting_time"] > current_waiting_time:
-                            pre_sid = order_wt[temp_dish.order_id.pk]['sid']
-                            pre_sloc = order_wt[temp_dish.order_id.pk]['sloc']
+                        print(self.order_wt, self.station_info)
+                        if self.order_wt[temp_dish.order_id.pk]["waiting_time"] > current_waiting_time:
+                            pre_sid = self.order_wt[temp_dish.order_id.pk]['sid']
+                            pre_sloc = self.order_wt[temp_dish.order_id.pk]['sloc']
+                            print(pre_sid, pre_sloc)
                             if pre_sid != 0:
                             ## 将原来的waiting_time对应的列flag设置为False
-                                self.station_info[pre_sid][pre_sloc]['flag'] = False
+                                self.station_info[pre_sid - 1][pre_sloc - 1]['flag'] = False
                             ## 更新为自己的sid和Loc
-                            order_wt[temp_dish.order_id.pk]['sid'] = sid + 1
-                            order_wt[temp_dish.order_id.pk]['sloc'] = i
+                            self.order_wt[temp_dish.order_id.pk]['sid'] = sid + 1
+                            self.order_wt[temp_dish.order_id.pk]['sloc'] = i
+                            self.order_wt[temp_dish.order_id.pk]['waiting_time'] = current_waiting_time
                             ## 记录目前等待的信息
                             self.station_info[sid].append({"order_id":temp_dish.order_id.pk, 
                                                         "dish_id":temp_dish.dish_id,
@@ -72,10 +80,11 @@ class kitchen_update():
                                                         "dish_id":temp_dish.dish_id,
                                                         "total_waiting_time":current_waiting_time,
                                                         "flag":False})
-            
+
+    
     ## 插入时间最短的菜, 并计算对应的最短时间增量
     ## add_time表示该单用时最少的菜的时间增量
-    def minimum_waiting_time_computation(self, add_time, dish_type):
+    def minimum_waiting_time_computation(self, order_info, add_time, dish_type):
         # 表示冷菜
         if dish_type == 0:
             start_point = 0
@@ -131,21 +140,25 @@ class kitchen_update():
                         insert_loc["sid"] = sid + 1
                         insert_loc["snum"] = loc + 1
                         insert_loc["waiting_time"] = loc_add_time
+        ## 将这个最新的插入到order_wt里面去计算
+        self.order_wt[order_info.order_id] = insert_loc
         return insert_loc
 
     
     ## 计算目前所有菜的等待时间指标
     def total_waiting_time_computation(self):
         return 0
-    def order_update(self, current_id, dishes):
+    def order_update(self, current_id, order_dish):
         # 下单更新结合dish_id和require_time, 结合目前的station_info进行计算
         ## 如果采用实际算法, 对这一单每道菜会返回一个(dish_id, station_id, waiting_list)的数组
         # 选择对应的算法进行调整
         add_type = order_choice_log.objects.all().last().add_order_type
         current_allocation = []
+        order_info = all_order_log.objects.get(order_id = current_id)
         ## 否则按照随机算法我目前会直接随机生成一个这样的序列
         if add_type == 0:
             for dish_detail in order_dish:
+                print(dish_detail)
                 dish_id = dish_detail['dish_id']
                 ## 冷菜工位
                 if dish.objects.get(dish_id = dish_id).dish_type in ['开胃冷菜', '酒水', '主食点心', '营养汤羹']:
@@ -154,12 +167,17 @@ class kitchen_update():
                 else:
                     alloc_id = np.random.randint(self.cold_station_number + 1, self.all_station_number + 1)
                 # 该工位目前没有菜在做
-                if len(self.station_info[alloc_id - 1]) == 0:
-                    alloc_wl = 0                
+                if len(order_detail.objects.filter(station_id = alloc_id, dish_status = 4)) == 0:
+                    alloc_wl = 0     
                 else:
                 # 随机进入队列
-                    alloc_wl = np.random.randint(1, len(self.station_info[alloc_id - 1]) + 2)
-            current_allocation.append({"dish_id":dish_id, "count":dish_detail['count'], "station_id":alloc_id, "waiting_list":alloc_wl})
+                    current_waiting_number = len(order_detail.objects.filter(station_id = alloc_id, waiting_list__gt = 0)) + 1
+                    alloc_wl = np.random.randint(1, current_waiting_number + 1)
+                    print("----------------")
+                    print("order_id", order_info.order_id, dish_detail, alloc_id, alloc_wl, current_waiting_number - 1)
+                    ## 插入并将原来WL之后的菜后移
+                self.insert_alloc(order_info, alloc_id, alloc_wl, dish_detail)
+#                current_allocation.append({"dish_id":dish_id, "count":dish_detail['count'], "station_id":alloc_id, "waiting_list":alloc_wl})
         # 下单更新结合dish_id和require_time, 结合目前的station_info进行计算
         ## 采用优先级调整算法
         ### 如果采用实际算法, 对这一单每道菜会返回一个(dish_id, station_id, waiting_list)的数组  
@@ -178,15 +196,22 @@ class kitchen_update():
             type_flag = 1
             if dish.objects.get(dish_id = min_time_dish).dish_type in ['开胃冷菜', '酒水', '主食点心', '营养汤羹']:
                 type_flag = 0
-            dish_insert_loc = self.minimum_waiting_time_computation(dish_time[min_time_dish], type_flag)
+            dish_insert_loc = self.minimum_waiting_time_computation(order_info, dish_time[min_time_dish], type_flag)
             ## 找出其对应的count
             for dish_detail in order_dish:
                 ## 最小时间的菜
                 if dish_detail['dish_id'] == min_time_dish:
-                    current_allocation.append({"dish_id":min_time_dish, "count":dish_detail['count'], 
-                                                "station_id":dish_insert_loc["sid"], "waiting_list":dish_insert_loc["snum"]})
-                else:
-                    ## 其他菜随机分配位置
+                    alloc_id = dish_insert_loc["sid"]
+                    alloc_wl = dish_insert_loc["snum"]
+                    if alloc_wl == 0:
+                        order_detail.objects.create(order_id = order_info, dish_id = dish_id, count = dish_detail['count'], 
+                                            dish_status = 4, station_id = alloc_id, waiting_list = 0, start_time = datetime.now())  
+                    else:
+                        self.insert_alloc(order_info, alloc_id, alloc_wl, dish_detail)
+            ## 其他菜随机分配位置
+            for dish_detail in order_dish:
+                if dish_detail["dish_id"]!= min_time_dish:
+                    
                     dish_id = dish_detail['dish_id']
                     ## 冷菜工位
                     if dish.objects.get(dish_id = dish_id).dish_type in ['开胃冷菜', '酒水', '主食点心', '营养汤羹']:
@@ -195,14 +220,22 @@ class kitchen_update():
                     else:
                         alloc_id = np.random.randint(self.cold_station_number + 1, self.all_station_number + 1)
                     # 该工位目前没有菜在做
-                    if len(self.station_info[alloc_id - 1]) == 0:
-                        alloc_wl = 0                
+                    if len(order_detail.objects.filter(station_id = alloc_id, dish_status = 4)) == 0:
+                        self.insert_alloc(order_info, alloc_id, 0, dish_detail)
                     else:
                     # 随机进入队列, 但需要保证在最小菜的位置之后
+                        current_waiting_number = len(order_detail.objects.filter(station_id = alloc_id, waiting_list__gt = 0)) + 1
                         if alloc_id == dish_insert_loc["sid"]:
-                            alloc_wl = np.random.randint(dish_insert_loc['snum'] + 1, len(self.station_info[alloc_id - 1]) + 2)
-                    current_allocation.append({"dish_id":dish_id, "count":dish_detail['count'], "station_id":alloc_id, "waiting_list":alloc_wl})
-    
+                            alloc_wl = np.random.randint(dish_insert_loc['snum'] + 1, current_waiting_number + 1)
+                        else:
+                            min_place = 1 ##该菜目前可放置的minimum WL
+                            for orderid in self.order_wt.keys():
+                                ## 在这个alloc_id中存在之前被标记为最小时间的菜
+                                if alloc_id == self.order_wt[orderid]['sid'] and self.order_wt[orderid]['snum'] + 1>min_place:
+                                    min_place = self.order_wt[orderid]['snum'] + 1
+                            alloc_wl = np.random.randint(min_place, current_waiting_number + 1)
+                    ## 插入并将原来WL之后的菜后移
+                        self.insert_alloc(order_info, alloc_id, alloc_wl, dish_detail)
 
         ### 冷菜热菜分别计算时间排序, 对热菜的一个使用epsilon-greedy + DP
         ### 其他的菜直接随机
@@ -227,26 +260,31 @@ class kitchen_update():
             # 这一单存在冷菜
             if len(dish_time_cold) > 0:
                 min_time_dish_cold = min(dish_time_cold, key = lambda k:dish_time_cold[k])
-                dish_insert_cold = self.minimum_waiting_time_computation(dish_time_cold[min_time_dish_cold], 0)
+                dish_insert_cold = self.minimum_waiting_time_computation(order_info, dish_time_cold[min_time_dish_cold], 0)
             # 这一单存在热菜
             if len(dish_time_hot) > 0:    
                 min_time_dish_hot = min(dish_time_hot, key = lambda k: dish_time_hot[k])
                 # 看情况是否选择计算
                 if np.random.rand() >= epsilon:
-                   dish_insert_hot = self.minimum_waiting_time_computation(dish_time[min_time_dish_hot], 1)
+                   dish_insert_hot = self.minimum_waiting_time_computation(order_info, dish_time[min_time_dish_hot], 1)
 
             ## 找出其对应的count
             for dish_detail in order_dish:
                 ## 最小时间的冷菜
                 if dish_detail['dish_id'] == min_time_dish_cold:
-                    current_allocation.append({"dish_id":min_time_dish_cold, "count":dish_detail['count'], 
-                                                "station_id":dish_insert_cold["sid"], "waiting_list":dish_insert_cold["snum"]})
+                    alloc_id = dish_insert_cold["sid"]
+                    alloc_wl = dish_insert_cold["snum"]
+                    
                 ## 最小时间且计算过的热菜
                 elif dish_detail['dish_id'] == min_time_dish_cold and len(dish_insert_hot) > 0:
-                    current_allocation.append({"dish_id":min_time_dish_hot, "count":dish_detail['count'], 
-                                                "station_id":dish_insert_hot["sid"], "waiting_list":dish_insert_hot["snum"]})
-                else:
-                    ## 其他菜随机分配位置
+                    alloc_id = dish_insert_hot["sid"]
+                    alloc_wl = dish_insert_hot["snum"]
+                self.insert_alloc(order_info, alloc_id, alloc_wl, dish_detail)
+
+            ## 其他菜随机分配位置
+            for dish_detail in order_dish:
+                if dish_detail['dish_id']!=min_time_dish_cold and dish_detail['dish_id']!=min_time_dish_hot:
+                    
                     dish_id = dish_detail['dish_id']
                     ## 冷菜工位
                     if dish.objects.get(dish_id = dish_id).dish_type in ['开胃冷菜', '酒水', '主食点心', '营养汤羹']:
@@ -255,30 +293,65 @@ class kitchen_update():
                     else:
                         alloc_id = np.random.randint(self.cold_station_number + 1, self.all_station_number + 1)
                     # 该工位目前没有菜在做
-                    if len(self.station_info[alloc_id - 1]) == 0:
-                        alloc_wl = 0                
+                    if len(order_detail.objects.filter(station_id = alloc_id, dish_status = 4)) == 0:
+                        alloc_wl = 0                 
                     else:
+                        current_waiting_number = len(order_detail.objects.filter(station_id = alloc_id, waiting_list__gt = 0)) + 1
                     # 随机进入队列, 但需要保证在最小菜的位置之后
                         if alloc_id == dish_insert_cold["sid"]:
-                            alloc_wl = np.random.randint(dish_insert_cold['snum'] + 1, len(self.station_info[alloc_id - 1]) + 2)
-                        if len(dish_insert_hot) > 0 and alloc_id == dish_insert_hot["sid"]:
-                            alloc_wl = np.random.randint(dish_insert_cold['snum'] + 1, len(self.station_info[alloc_id - 1]) + 2)
-                        current_allocation.append({"dish_id":dish_id, "count":dish_detail['count'], "station_id":alloc_id, "waiting_list":alloc_wl})
-        
-
-        # 插入新的订单到数据库里
-        for curr_loc in current_allocation:
-            if curr_loc['alloc_wl'] == 0:
-                order_detail.objects.create(order_id = current_id, dish_id = curr_loc['dish_id'], count = curr_loc['count'], 
-                                            dish_status = 4, station_id = curr_loc['station_id'], waiting_list = 0, start_time = datetime.now())
-            else:
-                order_detail.objects.create(order_id = current_id, dish_id = curr_loc['dish_id'], count = curr_loc['count'], 
-                                            dish_status = 0, station_id = curr_loc['station_id'], waiting_list = curr_loc['alloc_wl'])
+                            alloc_wl = np.random.randint(dish_insert_cold['snum'] + 1, current_waiting_number + 1)
+                        
+                        elif len(dish_insert_hot) > 0 and alloc_id == dish_insert_hot["sid"]:
+                            alloc_wl = np.random.randint(dish_insert_cold['snum'] + 1, current_waiting_number + 1)
+                        # 放在其他单号的最小时间菜的后面
+                        else:
+                            min_place = 1 ##该菜目前可放置的minimum WL
+                            for orderid in self.order_wt.keys():
+                                ## 在这个alloc_id中存在之前被标记为最小时间的菜
+                                if alloc_id == self.order_wt[orderid]['sid'] and self.order_wt[orderid]['snum'] + 1>min_place:
+                                    min_place = self.order_wt[orderid]['snum'] + 1
+                                ## 选择最后一个单号最小时间的菜的位置之后（WITH MAX WL)
+                            alloc_wl = np.random.randint(min_place, current_waiting_number + 1)
+                    ## 插入并将原来WL之后的菜后移
+                    self.insert_alloc(order_info, alloc_id, alloc_wl, dish_detail)
+                    
+        #self.insert_alloc(current_id, current_allocation)
+    
+    ## 在已经需要等待的工位插入新单，并将在这个WL之后的菜位置后移
+    def insert_alloc(self, order_info, alloc_id, alloc_wl, dish_detail):
+        if alloc_wl > 0:
             ## 更新这个工位之后其他的菜的WL, 将之后的菜WL滞后一位
-                later_orders = order_detail.objects.filter(station_id = current_station, waiting_list__gt = curr_loc['alloc_wl'])
-                for later_order in later_orders:
-                    later_order.waiting_list = later_order.waiting_list + 1
-                    later_order.save()
+            later_orders = order_detail.objects.filter(station_id = alloc_id, waiting_list__gte = alloc_wl)
+            for later_order in later_orders:
+                print("later order",later_order.waiting_list)
+                later_order.waiting_list = later_order.waiting_list + 1
+                later_order.save()
+            order_detail.objects.create(order_id = order_info, dish_id = dish_detail['dish_id'], count = dish_detail['count'], 
+                                        dish_status = 0, station_id = alloc_id, waiting_list = alloc_wl)
+ 
+        else:
+            order_detail.objects.create(order_id = order_info, dish_id = dish_detail['dish_id'], count = dish_detail['count'], 
+                                            dish_status = 4, station_id = alloc_id, waiting_list = 0, start_time = datetime.now())  
+    # def insert_alloc(self, current_id, current_allocation):
+    #     print(current_allocation)
+    #     # 插入新的订单到数据库里
+    #     for curr_loc in current_allocation:
+    #         order_info = all_order_log.objects.get(order_id = current_id)
+    #         ##目前的waiting_list为0并且其也不和这单其他菜冲突
+    #         ### 也就是防止这一单已经有正在做的情况
+    #         if curr_loc['waiting_list'] == 0 and len(order_detail.objects.filter(station_id = curr_loc['station_id'], dish_status = 4)) == 0:
+    #         ## 检查是否有被这一单其他菜占用的情况
+    #             if 
+    #             order_detail.objects.create(order_id = order_info, dish_id = curr_loc['dish_id'], count = curr_loc['count'], 
+    #                                         dish_status = 4, station_id = curr_loc['station_id'], waiting_list = 0, start_time = datetime.now())
+    #         else:
+    #             order_detail.objects.create(order_id = order_info, dish_id = curr_loc['dish_id'], count = curr_loc['count'], 
+    #                                         dish_status = 0, station_id = curr_loc['station_id'], waiting_list = curr_loc['waiting_list'])
+    #         ## 更新这个工位之后其他的菜的WL, 将之后的菜WL滞后一位
+    #             later_orders = order_detail.objects.filter(station_id = curr_loc['station_id'], waiting_list__gt = curr_loc['waiting_list'])
+    #             for later_order in later_orders:
+    #                 later_order.waiting_list = later_order.waiting_list + 1
+    #                 later_order.save()
     def nudge_update(self, current_id):
         nudge_type = order_choice_log.objects.all().last().nudge_order_type
         if nudge_type == 0:

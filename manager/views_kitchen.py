@@ -128,7 +128,7 @@ class KitchenWorkstation(View):
             ### 判断现在是忙还是闲:
             if len(order_detail.objects.filter(station_id = sid, dish_status = 4)) == 1:
                 sid_dict['current_status'] = 1
-                sid_dict['waiting_number'] = order_detail.objects.filter(station = sid).aggregate(Max('waiting_list'))['waiting_list__max']
+                sid_dict['waiting_number'] = order_detail.objects.filter(station_id = sid).aggregate(Max('waiting_list'))['waiting_list__max']
             ### 计算工作量
             sys_start_time = order_detail.objects.all().order_by('create_time').first().create_time
             #### 计算过去的总时间(从最早的订单开始, 计算秒数)

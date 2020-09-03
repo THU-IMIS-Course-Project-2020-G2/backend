@@ -28,7 +28,7 @@ def check_ingredient(ingredients):
         if new_ig_name not in current_ig_name:
             add_material.append(new_ig_name) 
     if len(add_material)>0:
-        url_add_material = 'http://127.0.0.1:8080/add_material'
+        url_add_material = 'http://127.0.0.1:8080/g4/add_material'
         requests.post(url_add_material, {'add_material':add_material})
 
 
@@ -378,8 +378,3 @@ def search_time(request):
         }
         dish_list.append(dish)
     return http.JsonResponse({"dishes":dish_list}, safe = False)
-    
-# 按条件查询界面
-class dishsearchView(View):
-    def post():
-        pass
