@@ -82,15 +82,18 @@ class kitchendetailView(View):
         dishes = []
         order_max = all_order_log.objects.all().last().order_id
         for i in range(order_max):
-            order_info = {"order_id": i + 1, "order_type":all_order_log.objects.get(order_id = i + 1).order_type}
-            order_info['create_time'] = order_detail.objects.filter(order_id = i + 1).first().create_time.strftime('%Y%m%d %H:%M:%S')
-            order_info['count'] = len(order_detail.objects.filter(order_id = i + 1))
-            ## 计算完成率
-            if order_info['count'] != 0:
-                order_info['finish_percent'] = (len(order_detail.objects.filter(order_id = i + 1, dish_status = 2)) + len(order_detail.objects.filter(order_id = i + 1, dish_status = 3)))/order_info['count']
-            else:
-                order_info['finish_percent'] = 0
-            dishes.append(order_info)
+            if len(order_detail.objects.filter(order_id = i + 1)) > 0:
+            # 只有当这个订单真实存在的时候且完成下单
+                order_info = {"order_id": i + 1, "order_type":all_order_log.objects.get(order_id = i + 1).order_type}
+                print(order_info)
+                order_info['create_time'] = order_detail.objects.filter(order_id = i + 1).first().create_time.strftime('%Y%m%d %H:%M:%S')
+                order_info['count'] = len(order_detail.objects.filter(order_id = i + 1))
+                ## 计算完成率
+                if order_info['count'] != 0:
+                    order_info['finish_percent'] = (len(order_detail.objects.filter(order_id = i + 1, dish_status = 2)) + len(order_detail.objects.filter(order_id = i + 1, dish_status = 3)))/order_info['count']
+                else:
+                    order_info['finish_percent'] = 0
+                dishes.append(order_info)
         return http.JsonResponse({"dishes":dishes})
 
     # 查看某一订单的详情
@@ -157,6 +160,9 @@ class KitchenWorkstation(View):
             dict_data = json.loads(request.body, strict = False)
             print(dict_data)
             orders = order_detail.objects.filter(station_id = dict_data['station_id'])
+            ##去除已经完成/废弃的菜, 并按照WL进行排序
+            orders = orders.exclude(dish_status = 2)
+            orders = orders.exclude(dish_status = 3).order_by('waiting_list')
             dishes_list = []
             for order in orders:
                 order = {

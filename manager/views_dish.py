@@ -58,7 +58,7 @@ class dishView(View):
         
         # 获取参数
         dict_data = json.loads(request.body, strict = False)
-        print(dict_data)
+        #print(dict_data)
         # 理论上没有dish_id,需要根据类别手动调整
         ## 获取所有的类
         all_dish_type = dish.objects.values("dish_type").distinct()
@@ -85,6 +85,9 @@ class dishView(View):
         print('wtf2')
         name = dict_data.get('name')
         dish_pic = dict_data.get('dish_pic')
+        if dish_pic !='':
+            print(dish_pic.split(',')[0])
+            dict_data['dish_pic'] = dish_pic.split(',')[1]
         time_cost = dict_data.get('time_cost')
         ingredients = dict_data.get('ingredients')
         print(ingredients)
@@ -157,6 +160,7 @@ class dishdetailView(View):
             "price":dish.price,
             "success":dish.success,
             "ingredients":ingredient,
+            "ingd_cost":dish.ingd_cost
         }
         print(dish_dict)
         # data = dicttoxml.dicttoxml(dish_dict, root = True, attr_type = False)
