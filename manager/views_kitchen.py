@@ -44,6 +44,7 @@ class KitchenDish(View):
         dishes = []
         all_dish_number = len(order_detail.objects.all())
         all_dish_id = len(all_order_log.objects.all())
+        print(all_dish_number)
         # 总共有5种状态的菜
         for did in range(5):
             dish_status_count = {"dish_status": did}
@@ -201,29 +202,53 @@ class kitchendetail(View):
 
 # 模糊查询的接口   
 def search(request):
-    dict_data = json.loads(request.body, strict = False)
-    select_order = []
-    ## 搜寻到最终需要满足的要求
+    select_id = None
     select_dishes = order_detail.objects.all()
-    for dict_key in dict_data.keys():
-        if dict_data[dict_key] is not None:
-            select_dishes.filter(dict_key = dict_data[dict_key])
+    if request.body == b'':
+        pass
+    else:
+        dict_data = json.loads(request.body, strict = False)
+        
+        ## 搜寻到最终需要满足的要求
+        
+        #print(dict_data)
+        for dict_key in dict_data.keys():
+            if dict_data[dict_key] is not None and dict_data[dict_key]!= '':
+                print(dict_data[dict_key], dict_key)
+                if dict_key == 'order_id':
+                    select_dishes = select_dishes.filter(order_id = dict_data[dict_key])
+                elif dict_key == 'dish_id':
+                    select_dishes = select_dishes.filter(dish_id = dict_data[dict_key])
+                elif dict_key == 'count':
+                    select_dishes = select_dishes.filter(count = dict_data[dict_key])
+                elif dict_key == 'dish_status':
+                    select_dishes = select_dishes.filter(dish_status = dict_data[dict_key])
+                elif dict_key == 'station_id':
+                    select_dishes = select_dishes.filter(station_id = dict_data[dict_key])
+                elif dict_key == 'waiting_list':
+                    select_dishes = select_dishes.filter(waiting_list = dict_data[dict_key])
+                elif dict_key == 'dish_name':
+                    select_id = dish.objects.filter(name__contains = dict_data[dict_key]).values("dish_id")
+                    select_id = [sid['dish_id'] for sid in select_id]
+
+
     # 搜寻完成
     Finish_list = []
-    for order in finish_orders:
-        order = {
-            'order_id': order.order_id.pk,
-            'table_id':all_order_log.objects.get(order_id = order.order_id.pk).table_id,
-            'takeout_id':all_order_log.objects.get(order_id = order.order_id.pk).takeout,
-            'dish_id': dish.objects.get(dish_id = order.dish_id).name,
-            'count': order.count,
-            'create_time': order.create_time.strftime('%Y%m%d %H:%M:%S'),
-            'dish_status': order.dish_status,
-            'station_id': order.station_id,
-            'waiting_list': order.waiting_list,
-        }
-        Finish_list.append(order)
-        return http.JsonResponse({"dishes": Finish_list}, safe=False)
+    for order in select_dishes:
+        if select_id is None or order.dish_id in select_id:
+            order = {
+                'order_id': order.order_id.pk,
+                'dish_id':order.dish_id,
+                'dish_name': dish.objects.get(dish_id = order.dish_id).name,
+                'count': order.count,
+                'create_time': order.create_time.strftime('%Y%m%d %H:%M:%S'),
+                'dish_status': order.dish_status,
+                'station_id': order.station_id,
+                'waiting_list': order.waiting_list,
+            }
+            Finish_list.append(order)
+    print(Finish_list)
+    return http.JsonResponse({"dishes": Finish_list}, safe=False)
 
 ## 待删*************************
 class KitchenFinish(View):

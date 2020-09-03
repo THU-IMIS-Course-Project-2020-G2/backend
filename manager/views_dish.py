@@ -158,8 +158,9 @@ class dishdetailView(View):
             "success":dish.success,
             "ingredients":ingredient,
         }
-        data = dicttoxml.dicttoxml(dish_dict, root = True, attr_type = False)
-        return http.HttpResponse(data)
+        print(dish_dict)
+        # data = dicttoxml.dicttoxml(dish_dict, root = True, attr_type = False)
+        # return http.HttpResponse(data)
         return http.JsonResponse(dish_dict)
     
     #修改某道菜的详细信息 --设置回滚
@@ -245,7 +246,7 @@ def dish_search(request):
             if dict_key == 'time_cost_ub':
                 select_dishes = select_dishes.filter(time_cost__lte = dict_data[dict_key])
             elif dict_key == 'time_cost_lb':
-                select_dishes = select_dishes.filter(time_cost_gte = dict_data[dict_key])
+                select_dishes = select_dishes.filter(time_cost__gte = dict_data[dict_key])
             elif dict_key == 'price_ub':
                 #print(select_dishes)
                 select_dishes = select_dishes.filter(price__lte = dict_data[dict_key])
@@ -290,12 +291,13 @@ class dishpriceView(View):
     # 修改某道菜的价格
         edit_info = {
         "dish_id":pk,
-        "edit_status":1
+        "special_success":1
         }
         put = http.QueryDict(request.body)
         #将获取的QueryDict对象转换为str类型
         put_str = list(put.items())[0][0]
         put_dict = eval(put_str)
+        print(put_dict)
         dish_price = put_dict.get('price')
         try:
             dish_info = dish.objects.filter(dish_id = pk)
@@ -304,7 +306,7 @@ class dishpriceView(View):
         try:
             dish_info.update(price = dish_price)
         except Exception as e:
-            edit_info["edit_status"] = 0
+            edit_info["special_success"] = 0
             return http.JsonResponse(edit_info)
         return http.JsonResponse(edit_info)        
 
