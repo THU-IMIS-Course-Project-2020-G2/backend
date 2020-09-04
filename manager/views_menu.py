@@ -40,7 +40,7 @@ class dishingredient():
     # 菜和原材料的转化
     def dish_to_ingredient(self):
         for dish_detail in self.current_dishes:
-            dish_id = dish_detail['dish_id']
+            dish_id = int(dish_detail['dish_id'])
             count = int(dish_detail['count'])
             ig_list = dish_ingredient.objects.filter(dish_id = dish_id).values('ingredient_name', 'ingredient_number')
             for ig_detail in ig_list:
@@ -192,8 +192,8 @@ def add_order(request):
     dict_data = xml_to_dict(request)
     order_dish = dict_data['dishes']
     print(order_dish)
-    table_id = dict_data['table_id']
-    serial_number = dict_data['serial']
+    table_id = int(dict_data['table_id'])
+    serial_number = int(dict_data['serial'])
     
     dish_json = {"table_id": table_id, "success":1, "fail_dishes":None, "serial":serial_number}
     
@@ -238,7 +238,7 @@ def add_takeout(request):
 
     dict_data = xml_to_dict(request)
     order_dish = dict_data['dishes']
-    takeout_id = dict_data['takeout_id']
+    takeout_id = int(dict_data['takeout_id'])
     dish_json = {"takeout_id": takeout_id, "success":1, "fail_dishes":None}
     order_ingredient = dishingredient(order_dish)
     
@@ -251,7 +251,7 @@ def add_takeout(request):
     else:
         print('外卖预出库!')
         # 外卖预出库
-        ## 发给供应链的格式转化
+        ## 发送原材料消耗
         max_id = all_order_log.objects.all().aggregate(Max('order_id'))['order_id__max']
         all_consumption = order_ingredient.ingredient_all
         all_consumption_list = []
@@ -259,14 +259,15 @@ def add_takeout(request):
             consumption = {"ingredient_name":item, "ingredient_number":all_consumption[item]}
             all_consumption_list.append(consumption)
         print(all_consumption_list)
+        # 向仓库发送POST请求 confirm_order_scm
         scm_order = {"order_id": max_id + 1, "order_type":1, "raw_material":all_consumption_list}
         scm_order = dicttoxml.dicttoxml(scm_order, root = True, attr_type = False)
-        # 向仓库发送POST请求 confirm_order_scm
-        url = 'http://127.0.0.1:8080/confirm_order_scm'
+        
+        url = 'http://127.0.0.1:8080/g4/confirm_order_scm'
         r = requests.post(url, scm_order)
         # 向自己的数据库添加数据
         ## 在all_order_log中插入该条下单记录
-        all_order_log.objects.create(order_id = max_id + 1, table_id = -1, serial = -1, takeout = takeout_id)
+        all_order_log.objects.create(order_id = max_id + 1, order_type = 1, table_id = -1, serial = -1, takeout = takeout_id)
     
     data = dicttoxml.dicttoxml(dish_json, root = True, attr_type = False)
     return http.HttpResponse(data)
@@ -280,24 +281,24 @@ def confirm_takeout(request):
     ## 出现一单只有一个菜的情况
     if type(order_dish) == dict:
         order_dish = [order_dish]
-    takeout_id = dict_data['takeout_id']
+    takeout_id = int(dict_data['takeout_id'])
     print(order_dish, takeout_id)
     takeout_ingredient = dishingredient(order_dish)
-    all_consumption = order_ingredient.ingredient_all
+    all_consumption = takeout_ingredient.ingredient_all
     all_consumption_list = []
     for item in all_consumption.keys():
         consumption = {"ingredient_name":item, "ingredient_number":all_consumption[item]}
         all_consumption_list.append(consumption)
     #提取之前的all_order_log的外卖单号
-    order_id_pre = all_order_log.objects.get(takeout_id = takeout_id).order_id
+    order_id_pre = all_order_log.objects.get(takeout = takeout_id).order_id
 
     # 更新向供应链发的订单
     scm_takeout = {"order_id": order_id_pre, "action":dict_data['action'], "raw_material":all_consumption_list}
     scm_takeout = dicttoxml.dicttoxml(scm_takeout, root = True, attr_type = False)
-    url = 'http://127.0.0.1:8080/confirm_takeout_scm'
+    url = 'http://127.0.0.1:8080/g4/confirm_takeout_scm'
     r = requests.post(url, scm_takeout)
-    
-    if dict_data['action'] == 0:
+    print("action",dict_data['action'])
+    if int(dict_data['action']) == 0:
         print('外卖正式出库！')
         ## 添加到自己的订单细节数据集中
     # *************传入参数为order_id, order_dish和对应下单选项， 调用后台排程算法，直接修改waiting_list和station_id********
@@ -393,7 +394,7 @@ def remove_order(request):
             print('已经删了哥哥！')
         
         elif current_dish_status == 2:
-            print("已经做完送给你了, 退单想都别想！")
+            print("你退吧反正和我没啥关系了")
     data = dicttoxml.dicttoxml({}, root = True, attr_type = False)
     return http.HttpResponse(data)
     

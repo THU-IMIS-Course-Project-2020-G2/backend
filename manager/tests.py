@@ -33,3 +33,6 @@ def order_request(request):
     data = dicttoxml.dicttoxml({}, root = True, attr_type = False)
     return http.HttpResponse(data)
 
+def takeout_request(request):
+    data = dicttoxml.dicttoxml({}, root = True, attr_type = False)
+    return http.HttpResponse(data)
