@@ -11,6 +11,7 @@ from datetime import datetime
 from manager.schedule_order import *
 import manager.dicttoxml as dicttoxml
 from manager.xml_to_dict import xml_to_dict
+from manager.param import *
 
 # 进行与前台计算的转化，同时在初始化的时候需要向供应链发送原材料请求
 class dishingredient():
@@ -19,7 +20,7 @@ class dishingredient():
         # 向仓库发送剩余所有原材料的请求
         ## 真实代码应该如下[未完]:
         
-        supply_url = "http://127.0.0.1:8080/g4/material"
+        supply_url = base_url + "g4/material"
         r = requests.get(supply_url)
         all_material = xml_to_dict(r)['raw_material']
         # 转化为如下的测试样例的样子
@@ -216,7 +217,7 @@ def add_order(request):
         scm_order = {"order_id": max_id + 1, "order_type":0, "raw_material":all_consumption_list}
         scm_order = dicttoxml.dicttoxml(scm_order, root = True, attr_type = False)
         # 向仓库发送POST请求 confirm_order_scm
-        url = 'http://127.0.0.1:8080/g4/confirm_order_scm'
+        url = base_url + 'g4/confirm_order_scm'
         r = requests.post(url, scm_order)
         # 向自己的数据库添加数据
         ## 在all_order_log中插入该条下单记录
@@ -263,7 +264,7 @@ def add_takeout(request):
         scm_order = {"order_id": max_id + 1, "order_type":1, "raw_material":all_consumption_list}
         scm_order = dicttoxml.dicttoxml(scm_order, root = True, attr_type = False)
         
-        url = 'http://127.0.0.1:8080/g4/confirm_order_scm'
+        url = base_url + 'g4/confirm_order_scm'
         r = requests.post(url, scm_order)
         # 向自己的数据库添加数据
         ## 在all_order_log中插入该条下单记录
@@ -295,7 +296,7 @@ def confirm_takeout(request):
     # 更新向供应链发的订单
     scm_takeout = {"order_id": order_id_pre, "action":dict_data['action'], "raw_material":all_consumption_list}
     scm_takeout = dicttoxml.dicttoxml(scm_takeout, root = True, attr_type = False)
-    url = 'http://127.0.0.1:8080/g4/confirm_takeout_scm'
+    url = base_url + 'g4/confirm_takeout_scm'
     r = requests.post(url, scm_takeout)
     print("action",dict_data['action'])
     if int(dict_data['action']) == 0:

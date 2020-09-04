@@ -10,6 +10,8 @@ from django.db.models import Sum, Count, Max, Min, Avg
 import json
 import manager.dicttoxml as dicttoxml
 from manager.xml_to_dict import xml_to_dict
+from manager.param import *
+
 # 实例化调度器
 scheduler = BackgroundScheduler()
 # 调度器使用默认的DjangoJobStore()
@@ -40,14 +42,14 @@ def kitchen_work():
             dish_finish_time = current_dish.finish_time.strftime('%Y%m%d %H:%M:%S')
             if current_dish_log.order_type == 0:
             ## 给机器人 (堂食，菜)
-                url_robot = 'http://127.0.0.1:8080/g5/finish_dish'
+                url_robot = base_url + 'g5/finish_dish'
                 dish_name = dish.objects.get(dish_id = current_dish.dish_id).name
                 robot_info = {"order_id":current_dish.order_id.pk, "table_id":current_dish_log.table_id, "name":dish_name, "dish_count":current_dish.count}
                 robot_info = dicttoxml.dicttoxml(robot_info, root = True, attr_type = False)
                 print('tosee why?')
                 requests.post(url_robot, robot_info)
             ## 给前台（堂食, 菜）
-                url_order = 'http://127.0.0.1:8080/g1/serve'
+                url_order = base_url + 'g1/serve'
                 table_info = {"table_id":current_dish_log.table_id, "deliver_time":dish_finish_time,"dishes":[{"dish_id":current_dish.dish_id, "count":current_dish.count}], "serial":current_dish_log.serial}
                 table_info = dicttoxml.dicttoxml(table_info, root = True, attr_type = False)
                 requests.post(url_order, table_info)
@@ -58,14 +60,14 @@ def kitchen_work():
             ## 不存在任何正在等的菜
             ## 给财务 (单)
             if order_finish_sign == False:
-                url_account = 'http://127.0.0.1:8080/g3/order_other_cost'
+                url_account = base_url +'g3/order_other_cost'
                 order_total_cost = order_detail.objects.filter(order_id = dish_order_id).aggregate(Sum('ingd_cost'))['ingd_cost__sum']
                 account_info = {"order_id":dish_order_id, "ingd_cost":order_total_cost, "finish_time":dish_finish_time}
                 account_info = dicttoxml.dicttoxml(account_info, root = True, attr_type = False)
                 requests.post(url_account, account_info)
                 if current_dish_log.order_type == 1:
                 ## 给前台（外卖, 单）
-                    url_takeout = 'http://127.0.0.1:8080/g1/deliver_takeout'
+                    url_takeout = base_url + 'g1/deliver_takeout'
                     takeout_id = all_order_log.objects.get(order_id = dish_order_id).takeout
                     takeout_info = {"order_id":dish_order_id, "deliver_time":dish_finish_time}
                     takeout_info = dicttoxml.dicttoxml(takeout_info, root = True, attr_type = False)

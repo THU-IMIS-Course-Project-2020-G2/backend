@@ -25,7 +25,7 @@ $ python manage.py migrate
 ```
 And you need to load the four ```.sql``` files (excepte ```apscheduler.sql```) into that database. (If you have successfully loaded the dish files before, you only need to load ```all_order_log.sql``` and ```order_detail.sql```. The database is done then.
 
-You can move your ```frontend``` folder into the outside ```frontend``` folder for test. Remember to change the templates DS_DIR in the ```setting.py``` and the ```url.py``` under the ```Base\backend\backend``` so that the http:127.0.0.1:8000/api should redirect to your ```index.html``` in your own frontend file  ```frontend\dist\index.html```. You can run the server below:
+You can move your ```frontend``` folder into the outside ```frontend``` folder for test. Remember to change the password of your mysql in the ```setting.py```. You can run the server below:
 ```
 $ python manage.py runserver 
 ```
@@ -40,7 +40,7 @@ The ```material.xml``` is used in the simulations for G2-G4 interactions.
 The ```xml_to_dict.py``` and ```dicttoxml.py``` revised a little for the original python package ```xmltodict``` and ```dicttoxml``` so that it matches the format in https://www.convertjson.com/.
 
 ## Remind for myself 
-The default port in this package is http://127.0.0.1:8080. For interactions and overall use, it needs to be changed to http://127.0.0.1:8082. So as in the frontend folder. To deploy in the Huawei Cloud Server managed by Prof. Hou, we still need to clear up some urls in ```manager/url.py```, which was used for simulating before.
+The default port in this package is http://127.0.0.1:8080. For interactions and overall use, it needs to be changed to http://124.70.178.153:8082. So as in the frontend folder. To deploy in the Huawei Cloud Server managed by Prof. Hou, we still need to clear up some urls in ```manager/url.py```, which was used for simulating before.
 
 Besides, the ```views_test.py``` and ```tests.py``` are used for simulation tests.
 

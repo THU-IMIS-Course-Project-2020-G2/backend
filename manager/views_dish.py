@@ -10,6 +10,7 @@ from django.db.models import Sum, Count, Max, Min, Avg
 import json
 import manager.dicttoxml as dicttoxml
 from manager.xml_to_dict import xml_to_dict
+from manager.param import *
 
 # Create your views here.
 '''
@@ -30,7 +31,7 @@ def check_ingredient(ingredients):
         if new_ig_name not in current_ig_name:
             add_material.append(new_ig_name) 
     if len(add_material)>0:
-        url_add_material = 'http://127.0.0.1:8080/g4/add_material'
+        url_add_material = base_url + 'g4/add_material'
         scm_request = {"add_material":add_material}
         data = dicttoxml.dicttoxml(scm_request, root = True, attr_type = False)
         #return http.HttpResponse(data)
