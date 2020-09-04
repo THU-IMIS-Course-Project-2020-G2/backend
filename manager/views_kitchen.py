@@ -256,25 +256,7 @@ def search(request):
     print(Finish_list)
     return http.JsonResponse({"dishes": Finish_list}, safe=False)
 
-## 待删*************************
-class KitchenFinish(View):
-    def get(self, request):
-        finish_orders = order_detail.objects.filter(dish_status = 2)
-        Finish_list = []
-        for order in finish_orders:
-            order = {
-                'order_id': order.order_id.pk,
-                'table_id':all_order_log.objects.get(order_id = order.order_id.pk).table_id,
-                'takeout_id':all_order_log.objects.get(order_id = order.order_id.pk).takeout,
-                'dish_id': dish.objects.get(dish_id = order.dish_id).name,
-                'count': order.count,
-                'create_time': order.create_time.strftime('%Y%m%d %H:%M:%S'),
-                'dish_status': order.dish_status,
-                'station_id': order.station_id,
-                'finish_time': order.finish_time.strftime('%Y%m%d %H:%M:%S'),
-            }
-            Finish_list.append(order)
-        return http.JsonResponse({"dishes": Finish_list}, safe=False)
+
 
 
 

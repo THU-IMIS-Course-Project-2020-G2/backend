@@ -18,7 +18,7 @@ urlpatterns = [
     url('api/kitchen/detail', views_kitchen.kitchendetail.as_view()),
     url('api/kitchen/dish', views_kitchen.KitchenDish.as_view()),
     url('api/kitchen/workstation', views_kitchen.KitchenWorkstation.as_view()),
-    url('api/kitchen/finish', views_kitchen.KitchenFinish.as_view()),
+    #url('api/kitchen/finish', views_kitchen.KitchenFinish.as_view()),
     ## kitchen param management
     url('api/kitchen/order_type', views_order_param.order_type.as_view()),
     # with group 1 REQUEST

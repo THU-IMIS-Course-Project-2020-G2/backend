@@ -36,12 +36,12 @@ def kitchen_work():
     #             dish_finish_time = current_dish.finish_time.strftime('%Y%m%d %H:%M:%S')
     #             if current_dish_log.order_type == 0:
     #             ## 给机器人 (堂食，菜)
-    #                 url_robot = 'http://127.0.0.1:8080/finish_dish'
+    #                 url_robot = 'http://127.0.0.1:8080/g5/finish_dish'
     #                 dish_name = dish.objects.get(dish_id = current_dish.dish_id).name
     #                 robot_info = {"order_id":current_dish.order_id.pk, "table_id":current_dish_log.table_id, "name":dish_name, "dish_count":current_dish.count}
     #                 requests.post(url_robot, robot_info)
     #             ## 给前台（堂食, 菜）
-    #                 url_order = 'http://127.0.0.1:8080/serve'
+    #                 url_order = 'http://127.0.0.1:8080/g1/serve'
     #                 table_info = {"table_id":current_dish_log.table_id, "deliver_time":dish_finish_time,"dishes":[{"dish_id":current_dish.dish_id, "count":current_dish.count}], "serial":current_dish_log.serial}
     #                 requests.post(url_order, table_info)
                 
@@ -50,13 +50,13 @@ def kitchen_work():
     #             order_finish_sign = order_detail.objects.filter(Q(order_id = dish_order_id), Q(dish_status = 0)|Q(dish_status = 1)|Q(dish_status = 4)).exists() 
     #             ## 给财务 (单)
     #             if order_finish_sign == True:
-    #                 url_account = 'http://127.0.0.1:8080/order_other_cost'
+    #                 url_account = 'http://127.0.0.1:8080/g3/order_other_cost'
     #                 order_total_cost = order_detail.objects.filter(order_id = dish_order_id).aggregate(Sum('ingd_cost'))['ingd_cost__sum']
     #                 account_info = {"order_id":dish_order_id, "ingd_cost":order_total_cost, "finish_time":dish_finish_time}
     #                 requests.post(url_account, account_info)
     #                 if current_dish_log.order_type == 1:
     #                 ## 给前台（外卖, 单）
-    #                     url_takeout = 'http://127.0.0.1:8080/deliver_takeout'
+    #                     url_takeout = 'http://127.0.0.1:8080/g1/deliver_takeout'
     #                     takeout_id = all_order_log.objects.get(order_id = dish_order_id).takeout
     #                     takeout_info = {"order_id":dish_order_id, "deliver_time":dish_finish_time}
 
