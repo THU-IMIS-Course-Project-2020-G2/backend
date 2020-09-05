@@ -40,7 +40,7 @@ The ```material.xml``` is used in the simulations for G2-G4 interactions.
 The ```xml_to_dict.py``` and ```dicttoxml.py``` revised a little for the original python package ```xmltodict``` and ```dicttoxml``` so that it matches the format in https://www.convertjson.com/.
 
 ## Remind for myself 
-The default port in this package is http://127.0.0.1:8080. For interactions and overall use, it needs to be changed to http://124.70.178.153:8082. So as in the frontend folder. To deploy in the Huawei Cloud Server managed by Prof. Hou, we still need to clear up some urls in ```manager/url.py```, which was used for simulating before.
+The default port in this package is http://127.0.0.1:8080. To deploy in the Huawei Cloud Server managed by Prof. Hou, we still need to clear up some urls in ```manager/url.py```, which was used for simulating before.
 
 Besides, the ```views_test.py``` and ```tests.py``` are used for simulation tests.
 
