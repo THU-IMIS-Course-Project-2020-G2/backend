@@ -1,7 +1,7 @@
 # Base
 This is a preliminary version of kitchen backend with full menu management systems.
 
-To get started with the app, clone the repo and then install Python 3 and Django 3. There are also some python packages for you to download such as ```django-cors-headers``` and ```django-apscheduler```.
+To get started with the app, clone the repo and then install Python 3 and Django 3. There are also some python packages for you to download such as ```django-cors-headers```, ```pulp```,```dicttoxml```,```xmltodict``` and ```django-apscheduler```.
 
 ```
 $ git clone https://github.com/THU-IMIS-Course-Project-2020-G2/Base.git
