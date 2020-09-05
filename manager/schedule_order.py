@@ -344,7 +344,7 @@ class kitchen_update():
         ### 其他的菜直接随机
         elif add_type == 2:
             # epsilon为给定的参数
-            epsilon = 0.5
+            epsilon = 0.2
             dish_time_cold = dict()
             dish_time_hot = dict()
             ## 按照consume_time进行时间的排序
