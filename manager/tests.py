@@ -28,6 +28,7 @@ import xml.dom.minidom
 #                        {"ingredient_name":'胡萝卜（克）', "ingredient_number":150.0},
 #                        {"ingredient_name":'绿菜花（克）', "ingredient_number":450.0}]}
 #     data = dicttoxml.dicttoxml(json_dict, root = True, attr_type = False)
+#     print(data)
 #     return http.HttpResponse(data)
 
 def order_request(request):

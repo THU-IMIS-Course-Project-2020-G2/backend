@@ -67,7 +67,7 @@ class dishView(View):
         dish_dict = []
         # 查看现有的原材料
         supply_url = base_url + "g4/material"
-        r = requests.get(supply_url)    
+        r = requests.get(supply_url)
         all_material = xml_to_dict(r)['raw_material']
         all_remain_ingredient = dict()
         for ig_detail in all_material:
@@ -382,6 +382,7 @@ class dishtypeView(View):
     ## 点进去每一个的详细信息
     def post(self, request):
         from manager.models import dish, dish_ingredient
+        print(request.body)
         dict_data = json.loads(request.body, strict = False)
         print(dict_data)
     #    all_dishes = dish.objects.filter(dish_type = dict_data['params']['query'])

@@ -2,4 +2,4 @@
 all_number = 7
 cold_number = 3
 hot_number = 4
-base_url = 'http://127.0.0.1:8080/'
+base_url = 'http://127.0.0.1:8000/'
