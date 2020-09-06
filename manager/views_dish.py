@@ -80,8 +80,8 @@ class dishView(View):
                 ig_name = ig_detail['ingredient_name']
                 ## 如果某个原材料严格不足，则标记success 和sold_out_status均为失败.
                 ### *******下面这个if后续需要删除，仅作为样例使用*****************
-                if ig_name in all_remain_ingredient.keys():
-                    success_status = max(min(success_status, int(all_remain_ingredient[ig_name]/ig_detail['ingredient_number'])), 0) 
+                #if ig_name in all_remain_ingredient.keys():
+                success_status = max(min(success_status, int(all_remain_ingredient[ig_name]/ig_detail['ingredient_number'])), 0) 
             # 更新售罄标志
             dish.objects.filter(dish_id = dish_set['dish_id']).update(success = 1 - success_status)
        

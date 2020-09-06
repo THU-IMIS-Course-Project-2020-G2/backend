@@ -66,6 +66,18 @@ def material_request(request):
         <ingredient_number>850</ingredient_number>
     </raw_material>
     <raw_material>
+        <ingredient_name>肉鸡（克）</ingredient_name>
+        <ingredient_number>850</ingredient_number>
+    </raw_material>
+    <raw_material>
+        <ingredient_name>羊排（克）</ingredient_name>
+        <ingredient_number>850</ingredient_number>
+    </raw_material>
+        <raw_material>
+        <ingredient_name>牛柳（克）</ingredient_name>
+        <ingredient_number>850</ingredient_number>
+    </raw_material>
+    <raw_material>
         <ingredient_name>桂鱼（克）</ingredient_name>
         <ingredient_number>1000</ingredient_number>
     </raw_material>
@@ -129,6 +141,22 @@ def material_request(request):
         <ingredient_name>绿菜花（克）</ingredient_name>
         <ingredient_number>100</ingredient_number>
     </raw_material>
+        <raw_material>
+        <ingredient_name>胡萝卜（克）</ingredient_name>
+        <ingredient_number>100</ingredient_number>
+    </raw_material>
+    <raw_material>
+        <ingredient_name>莜麦面（克）</ingredient_name>
+        <ingredient_number>100</ingredient_number>
+    </raw_material>
+    <raw_material>
+        <ingredient_name>东北大米（克）</ingredient_name>
+        <ingredient_number>100</ingredient_number>
+    </raw_material>
+    <raw_material>
+        <ingredient_name>ef</ingredient_name>
+        <ingredient_number>2</ingredient_number>
+    </raw_material>
     <raw_material>
         <ingredient_name>彩椒（克）</ingredient_name>
         <ingredient_number>100</ingredient_number>
@@ -174,7 +202,7 @@ def material_request(request):
         <ingredient_number>100</ingredient_number>
     </raw_material>
     <raw_material>
-        <ingredient_name>可口可乐（瓶）</ingredient_name>
+        <ingredient_name>可乐（瓶）</ingredient_name>
         <ingredient_number>100</ingredient_number>
     </raw_material>
     <raw_material>
@@ -186,19 +214,39 @@ def material_request(request):
         <ingredient_number>100</ingredient_number>
     </raw_material>
     <raw_material>
+        <ingredient_name>加多宝（瓶）</ingredient_name>
+        <ingredient_number>90</ingredient_number>
+    </raw_material>
+    <raw_material>
+        <ingredient_name>青岛啤酒（瓶）</ingredient_name>
+        <ingredient_number>90</ingredient_number>
+    </raw_material>
+    <raw_material>
+        <ingredient_name>肉</ingredient_name>
+        <ingredient_number>90</ingredient_number>
+    </raw_material>
+    <raw_material>
+        <ingredient_name>大肉</ingredient_name>
+        <ingredient_number>90</ingredient_number>
+    </raw_material>
+    <raw_material>
+        <ingredient_name>大菜</ingredient_name>
+        <ingredient_number>90</ingredient_number>
+    </raw_material>
+    <raw_material>
+        <ingredient_name>大肠</ingredient_name>
+        <ingredient_number>90</ingredient_number>
+    </raw_material>
+    <raw_material>
+        <ingredient_name>1234</ingredient_name>
+        <ingredient_number>90</ingredient_number>
+    </raw_material>
+    <raw_material>
+        <ingredient_name>美汁源橙汁（瓶）</ingredient_name>
+        <ingredient_number>90</ingredient_number>
+    </raw_material>
+    <raw_material>
         <ingredient_name>茅台（瓶）</ingredient_name>
-        <ingredient_number>9</ingredient_number>
-    </raw_material>
-    <raw_material>
-        <ingredient_name>青岛啤酒（瓶）</ingredient_name>
-        <ingredient_number>90</ingredient_number>
-    </raw_material>
-    <raw_material>
-        <ingredient_name>青岛啤酒（瓶）</ingredient_name>
-        <ingredient_number>90</ingredient_number>
-    </raw_material>
-    <raw_material>
-        <ingredient_name>青岛啤酒（瓶）</ingredient_name>
         <ingredient_number>90</ingredient_number>
     </raw_material>
     </root>
