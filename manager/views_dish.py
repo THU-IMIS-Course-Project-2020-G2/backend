@@ -24,11 +24,16 @@ from manager.param import *
 def check_ingredient(ingredients):
     new_ingredient_name = [ig_detail["ingredient_name"] for ig_detail in ingredients]
     add_material = []
-    current_ig_list = dish_ingredient.objects.all().values('ingredient_name')
-    current_ig_name = [ig_item['ingredient_name'] for ig_item in current_ig_list]
-
+    # 查看现有的原材料
+    supply_url = base_url + "g4/material"
+    r = requests.get(supply_url)    
+    all_material = xml_to_dict(r)['raw_material']
+    all_remain_ingredient = dict()
+    for ig_detail in all_material:
+        all_remain_ingredient[ig_detail['ingredient_name']] = float(ig_detail['ingredient_number']) 
+    # 仓库没有这道菜某些原材料
     for new_ig_name in new_ingredient_name:
-        if new_ig_name not in current_ig_name:
+        if new_ig_name not in list(all_remain_ingredient.keys()):
             add_material.append(new_ig_name) 
     if len(add_material)>0:
         url_add_material = base_url + 'g4/add_material'
@@ -36,6 +41,20 @@ def check_ingredient(ingredients):
         data = dicttoxml.dicttoxml(scm_request, root = True, attr_type = False)
         #return http.HttpResponse(data)
         requests.post(url_add_material,data)
+        return 1
+
+    ## 原材料不够
+    else:
+        success_status = 1
+        for ig_detail in ingredients:
+            ig_name = ig_detail['ingredient_name']
+            ## 如果某个原材料严格不足，则标记success 均为失败.    
+            if ig_name in all_remain_ingredient.keys():
+                success_status = max(min(success_status, int(all_remain_ingredient[ig_name]/ig_detail['ingredient_number'])), 0)
+        ## 这样也能够达到手动沽清的作用
+        return 1 - success_status
+        
+
 
 
 class dishView(View):
@@ -43,7 +62,29 @@ class dishView(View):
     def get(self, request):
         from manager.models import dish
         dishes = dish.objects.all()
-
+        ## 每次查看都查看是否沽清
+        dish_id_list = dish.objects.all().values('dish_id')
+        dish_dict = []
+        # 查看现有的原材料
+        supply_url = base_url + "g4/material"
+        r = requests.get(supply_url)    
+        all_material = xml_to_dict(r)['raw_material']
+        all_remain_ingredient = dict()
+        for ig_detail in all_material:
+            all_remain_ingredient[ig_detail['ingredient_name']] = float(ig_detail['ingredient_number']) 
+        for dish_set in dish_id_list:
+            ig_list = dish_ingredient.objects.filter(dish_id = dish_set['dish_id']).values('ingredient_name', 'ingredient_number')
+            success_status = 1
+            # 为方便计算，之后需要对sold_out_status进行相反计算
+            for ig_detail in ig_list:
+                ig_name = ig_detail['ingredient_name']
+                ## 如果某个原材料严格不足，则标记success 和sold_out_status均为失败.
+                ### *******下面这个if后续需要删除，仅作为样例使用*****************
+                if ig_name in all_remain_ingredient.keys():
+                    success_status = max(min(success_status, int(all_remain_ingredient[ig_name]/ig_detail['ingredient_number'])), 0) 
+            # 更新售罄标志
+            dish.objects.filter(dish_id = dish_set['dish_id']).update(success = 1 - success_status)
+       
         dish_list = []
         for dish in dishes:
             dish = {
@@ -101,7 +142,7 @@ class dishView(View):
         
         ## 默认沽清状态，可能需要供应链剩余材料进行计算 [需要后续计算]
         ### 实际情况:向仓库发送GET material获取所有原材料，同时如果材料有新加的还需要重新向仓库发送一条POST add material.
-        dict_data['success'] = 1
+        dict_data['success'] = check_ingredient(ingredients)
         ingd_cost = dict_data.get('ingd_cost')
 
         # 检验参数
@@ -129,8 +170,7 @@ class dishView(View):
                     #print('test')
                     if ingredient_detail['ingredient_number'] != 0:
                         new_dish_ingredient.save()
-                # 入库完成，如果有新材料向供应链报告。
-                check_ingredient(ingredients)
+                
 
                 
         except Exception as e:
@@ -200,7 +240,8 @@ class dishdetailView(View):
         # 数据入库 
                 ingredients = dict_data['ingredients']
                 del dict_data['ingredients']
-            
+                ## 入库更新
+                dict_data['success'] = check_ingredient(ingredients)
                 dish.objects.filter(dish_id = pk).update(**dict_data)
                 
                 # 提取之前的菜的种类防止误删
@@ -216,8 +257,8 @@ class dishdetailView(View):
                     dish_info_new = dish.objects.get(dish_id = dict_data['dish_id'])
                     if ingredient_detail['ingredient_number'] != 0:
                         dish_ingredient.objects.create(dish_id = dish_info_new, ingredient_name = name, ingredient_number = ingredient_detail['ingredient_number'])
-                ## 入库更新
-                check_ingredient(ingredients)
+                
+                
         #没有修改成功，需要回滚
         except Exception:
             edit_info['edit_status'] = 0

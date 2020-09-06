@@ -1,28 +1,8 @@
 from django.conf.urls import url
-from manager import views, tests, views_dish, views_menu, views_kitchen, views_test, views_order_param
+from manager import tests, views_dish, views_menu, views_kitchen, views_test, views_order_param
 
 # dish + cook
 urlpatterns = [
-    # External 
-    ## self test with menu, supply chain and robots
-    url('g4/material', tests.material_request),
-    url('g4/confirm_order_scm', tests.order_request),
-    url('g4/confirm_takeout_scm', tests.takeout_request),
-    #url('finish_dish', views_test.finish_order),
-    ## self test when finishing one dish
-    url('g5/finish_dish', views_test.finish_dish),
-    url('g1/serve', views_test.serve),
-    url('g3/order_other_cost', views_test.order_other_cost),
-    url('g1/deliver_takeout', views_test.deliver_takeout),
-    # with group 1 REQUEST
-    url('dish$',views_menu.dish_menu.as_view()),
-    url('dish_residue',views_menu.dish_menu_residue.as_view()),
-    url('add_order', views_menu.add_order),
-    url('add_takeout', views_menu.add_takeout),
-    url('confirm_takeout', views_menu.confirm_takeout),
-    url('nudge', views_menu.nudge),
-    url('remove_order', views_menu.remove_order), 
-
     #------------------------------------------------#
     # Internal
     ## dish management
@@ -43,5 +23,28 @@ urlpatterns = [
     #url('api/kitchen/finish', views_kitchen.KitchenFinish.as_view()),
     ## kitchen param management
     url('api/kitchen/order_type', views_order_param.order_type.as_view()),
+
+    # External 
+    ## self test with menu, supply chain and robots
+    url('^g4/material$', tests.material_request),
+    url('^g4/add_material$', tests.add_material_request),
+    url('^g4/confirm_order_scm$', tests.order_request),
+    url('^g4/confirm_takeout_scm$', tests.takeout_request),
+    #url('finish_dish', views_test.finish_order),
+    ## self test when finishing one dish
+    url('^g5/finish_dish$', views_test.finish_dish),
+    url('^g1/serve$', views_test.serve),
+    url('^g3/order_other_cost$', views_test.order_other_cost),
+    url('^g1/deliver_takeout$', views_test.deliver_takeout),
+    # with group 1 REQUEST
+    url('^dish$',views_menu.dish_menu.as_view()),
+    url('^dish_residue$',views_menu.dish_menu_residue.as_view()),
+    url('^add_order$', views_menu.add_order),
+    url('^add_takeout$', views_menu.add_takeout),
+    url('^confirm_takeout$', views_menu.confirm_takeout),
+    url('^nudge$', views_menu.nudge),
+    url('^remove_order$', views_menu.remove_order), 
+
+    
 
 ]

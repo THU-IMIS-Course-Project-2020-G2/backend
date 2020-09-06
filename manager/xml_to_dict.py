@@ -5,6 +5,11 @@ def xml_to_dict(request):
         jsonstr = json.dumps(jsonstr)
         return json.loads(jsonstr)['root']
     except Exception as e:
-        jsonstr = xmltodict.parse(request.text)
-        jsonstr = json.dumps(jsonstr)
-        return json.loads(jsonstr)['root']
+        try:
+            jsonstr = xmltodict.parse(request.text)
+            jsonstr = json.dumps(jsonstr)
+            return json.loads(jsonstr)['root']
+        except Exception as e:
+            jsonstr = xmltodict.parse(request)
+            jsonstr = json.dumps(jsonstr)
+            return json.loads(jsonstr)['root']

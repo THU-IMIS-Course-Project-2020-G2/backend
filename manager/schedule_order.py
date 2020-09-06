@@ -475,7 +475,7 @@ class kitchen_update():
                     if nudge_dish.waiting_list == 2:
                         change_id = nudge_dish.waiting_list - 1
                     else:
-                        change_id = np.random.randint(1, nudge_dish.waiting_list - 1)
+                        change_id = np.random.randint(1, nudge_dish.waiting_list)
 
                     before_orders = order_detail.objects.filter(station_id = nudge_dish.station_id, waiting_list__gte = change_id, waiting_list__lt = nudge_dish.waiting_list)
                     nudge_dish.waiting_list = change_id

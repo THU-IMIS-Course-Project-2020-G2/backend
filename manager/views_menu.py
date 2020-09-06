@@ -18,10 +18,10 @@ class dishingredient():
     def __init__(self, current_dishes):
         from manager.models import dish, dish_ingredient
         # 向仓库发送剩余所有原材料的请求
-        ## 真实代码应该如下[未完]:
-        
+        ## 真实代码应该如下:
         supply_url = base_url + "g4/material"
         r = requests.get(supply_url)
+        print(r)
         all_material = xml_to_dict(r)['raw_material']
         # 转化为如下的测试样例的样子
         self.all_remain_ingredient = dict()
