@@ -100,15 +100,15 @@ def material_request(request):
     </raw_material>
     <raw_material>
         <ingredient_name>番茄（克）</ingredient_name>
-        <ingredient_number>50</ingredient_number>
+        <ingredient_number>250</ingredient_number>
     </raw_material>
     <raw_material>
         <ingredient_name>花生米（克）</ingredient_name>
-        <ingredient_number>100</ingredient_number>
+        <ingredient_number>600</ingredient_number>
     </raw_material>
     <raw_material>
         <ingredient_name>白条湖鸭（克）</ingredient_name>
-        <ingredient_number>100</ingredient_number>
+        <ingredient_number>1000</ingredient_number>
     </raw_material>
     <raw_material>
         <ingredient_name>鸡胸（克）</ingredient_name>
@@ -116,7 +116,7 @@ def material_request(request):
     </raw_material>
     <raw_material>
         <ingredient_name>纯瘦肉（克）</ingredient_name>
-        <ingredient_number>100</ingredient_number>
+        <ingredient_number>500</ingredient_number>
     </raw_material>
     <raw_material>
         <ingredient_name>牛柳（里脊）（克）</ingredient_name>
@@ -164,23 +164,23 @@ def material_request(request):
     </raw_material>
     <raw_material>
         <ingredient_name>柿子椒（克）</ingredient_name>
-        <ingredient_number>100</ingredient_number>
+        <ingredient_number>400</ingredient_number>
     </raw_material>
     <raw_material>
         <ingredient_name>空心菜（克）</ingredient_name>
-        <ingredient_number>100</ingredient_number>
+        <ingredient_number>500</ingredient_number>
     </raw_material>
     <raw_material>
         <ingredient_name>芥兰（克）</ingredient_name>
-        <ingredient_number>100</ingredient_number>
+        <ingredient_number>400</ingredient_number>
     </raw_material>
     <raw_material>
         <ingredient_name>茄子（克）</ingredient_name>
-        <ingredient_number>100</ingredient_number>
+        <ingredient_number>300</ingredient_number>
     </raw_material>
     <raw_material>
         <ingredient_name>韭菜（克）</ingredient_name>
-        <ingredient_number>100</ingredient_number>
+        <ingredient_number>400</ingredient_number>
     </raw_material>
     <raw_material>
         <ingredient_name>土豆（克）</ingredient_name>

@@ -102,8 +102,10 @@ class dishingredient():
 
         # 使退菜的损失总价格最小
         model = LpProblem("min_remove_cost", LpMinimize)
-        x = LpVariable.dicts('_', dish_id_list, lowBound = 0, cat = LpInteger)
-        model += (lpSum([dish_id_price[i]*x[dish_id_list[i]] for i in range(len(dish_id_list))]))
+        # 设置变量
+        x = [LpVariable('X%d'%i, lowBound = 0, upBound = dish_id_max[i], cat = LpInteger) for i in range(len(self.current_dishes))]
+        #x = LpVariable.dicts('_', dish_id_list, lowBound = 0, upBound = dish_id_max, cat = LpInteger)
+        model += (lpSum([dish_id_price[i]*x[i] for i in range(len(dish_id_list))]))
         
         A = np.zeros((len(short_ingredient), len(dish_id_list)))
         short_ingredient_list = list(short_ingredient.keys())
@@ -115,7 +117,7 @@ class dishingredient():
             for i in range(len(dish_id_list)):
                 if dish_id_list[i] in dish_ig:
                     A[j][i] = dish_ingredient.objects.get(dish_id = dish_id_list[i], ingredient_name = ig_name).ingredient_number
-            model += lpSum([A[j][i]*x[dish_id_list[i]] for i in range(len(dish_id_list))])>=short_ingredient[ig_name]      
+            model += lpSum([A[j][i]*x[i] for i in range(len(dish_id_list))])>=short_ingredient[ig_name]      
         print(A)
         # 优化求解
         model.solve()
