@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<root>
+    <takeout_id>00016664</takeout_id>
+    <dishes>
+        <dish_id>103</dish_id>
+        <count>1</count>
+    </dishes>
+    <dishes>
+        <dish_id>303</dish_id>
+        <count>1</count>
+    </dishes>
+    <dishes>
+        <dish_id>306</dish_id>
+        <count>1</count>
+    </dishes>
+    <dishes>
+        <dish_id>308</dish_id>
+        <count>1</count>
+    </dishes>
+    <dishes>
+        <dish_id>402</dish_id>
+        <count>2</count>
+    </dishes>
+    <dishes>
+        <dish_id>702</dish_id>
+        <count>1</count>
+    </dishes>
+    <action>0</action>
+</root>

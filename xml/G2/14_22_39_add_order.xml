@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<root>
+    <table_id>14</table_id>
+    <dishes>
+        <dish_id>602</dish_id>
+        <count>1</count>
+    </dishes>
+    <dishes>
+        <dish_id>704</dish_id>
+        <count>1</count>
+    </dishes>
+    <serial>00018121</serial>
+</root>

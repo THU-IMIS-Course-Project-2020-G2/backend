@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<root>
+    <current_dishes>
+        <dish_id>106</dish_id>
+        <count>1</count>
+    </current_dishes>
+    <current_dishes>
+        <dish_id>302</dish_id>
+        <count>1</count>
+    </current_dishes>
+    <current_dishes>
+        <dish_id>307</dish_id>
+        <count>1</count>
+    </current_dishes>
+    <current_dishes>
+        <dish_id>402</dish_id>
+        <count>1</count>
+    </current_dishes>
+    <current_dishes>
+        <dish_id>702</dish_id>
+        <count>1</count>
+    </current_dishes>
+    <current_dishes>
+        <dish_id>703</dish_id>
+        <count>1</count>
+    </current_dishes>
+</root>

@@ -300,6 +300,7 @@ class kitchen_update():
             if dish.objects.get(dish_id = min_time_dish).dish_type in ['开胃冷菜', '酒水', '主食点心', '营养汤羹']:
                 type_flag = 0
             dish_insert_loc = self.minimum_waiting_time_computation(order_info, dish_time[min_time_dish], type_flag)
+            print(min_time_dish)
             ## 找出其对应的count
             for dish_detail in order_dish:
                 ## 最小时间的菜
@@ -307,14 +308,12 @@ class kitchen_update():
                     alloc_id = dish_insert_loc["sid"]
                     alloc_wl = dish_insert_loc["snum"]
                     if alloc_wl == 0:
-                        order_detail.objects.create(order_id = order_info, dish_id = dish_id, count = dish_detail['count'], 
+                        order_detail.objects.create(order_id = order_info, dish_id = dish_detail['dish_id'], count = dish_detail['count'], 
                                             dish_status = 4, station_id = alloc_id, waiting_list = 0, start_time = datetime.now())  
                     else:
                         self.insert_alloc(order_info, alloc_id, alloc_wl, dish_detail)
             ## 其他菜随机分配位置
-            for dish_detail in order_dish:
-                if dish_detail["dish_id"]!= min_time_dish:
-                    
+                else:
                     dish_id = dish_detail['dish_id']
                     ## 冷菜工位
                     if dish.objects.get(dish_id = dish_id).dish_type in ['开胃冷菜', '酒水', '主食点心', '营养汤羹']:
@@ -371,7 +370,7 @@ class kitchen_update():
                 ## 如果随机选择或者本来没有冷菜
                 if np.random.rand() >= epsilon or len(dish_time_cold) == 0:
                    dish_insert_hot = self.minimum_waiting_time_computation(order_info, dish_time_hot[min_time_dish_hot], 1)
-
+            print(dish_insert_hot)
             ## 找出其对应的count
             for dish_detail in order_dish:
                 ## 最小时间的冷菜
@@ -381,7 +380,7 @@ class kitchen_update():
                     self.insert_alloc(order_info, alloc_id, alloc_wl, dish_detail)
 
                 ## 最小时间且计算过的热菜
-                elif dish_detail['dish_id'] == min_time_dish_cold and len(dish_insert_hot) > 0:
+                elif dish_detail['dish_id'] == min_time_dish_hot and len(dish_insert_hot) > 0:
                     alloc_id = dish_insert_hot["sid"]
                     alloc_wl = dish_insert_hot["snum"]
                     self.insert_alloc(order_info, alloc_id, alloc_wl, dish_detail)

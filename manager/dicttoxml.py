@@ -235,7 +235,7 @@ def convert_dict(obj, ids, parent, attr_type, item_func, cdata):
         elif isinstance(val, collections.Iterable):
             if attr_type:
                 attr['type'] = get_xml_type(val)
-            print(key, "test")
+            #print(key, "test")
             addline('%s' % (
                 #key, 
                 #make_attrstring(attr), 
@@ -281,7 +281,7 @@ def convert_list(items, ids, parent, attr_type, item_func, cdata):
             addline(convert_bool(item_name, item, attr_type, attr, cdata))
             
         elif isinstance(item, dict):
-            print(parent, item_name, "test")
+            #print(parent, item_name, "test")
             if not attr_type:
                 addline('<%s>%s</%s>' % (
                     parent, 

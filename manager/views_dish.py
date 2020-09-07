@@ -98,7 +98,7 @@ class dishView(View):
             }
             dish_list.append(dish)
         dish_list = {'dishes':dish_list}
-        print(dish_list)
+        #print(dish_list)
         return http.JsonResponse(dish_list, safe = False)
 
     #添加某类菜品
@@ -126,12 +126,10 @@ class dishView(View):
             dict_data['dish_id'] = (int(max_id/100) + 1)*100 + 1
         
         add_info = {'dish_id':dict_data['dish_id'], 'add_status':1}
-        print('wtf1')
         ## 这一类菜品数量太多
         if dict_data['dish_id']%100 == 0:
             add_info['add_status'] = 0
             return http.JsonResponse(add_info)
-        print('wtf2')
         name = dict_data.get('name')
         dish_pic = dict_data.get('dish_pic')
         if dish_pic !='':
@@ -156,7 +154,7 @@ class dishView(View):
                 del dict_data['ingredients']
                 
                 dish_info = dish.objects.create(**dict_data)
-                print(dict_data['dish_id'])
+                #print(dict_data['dish_id'])
                 # 数据入库（入材料库）
                 for ingredient_detail in ingredients:
                     #print(ingredient_detail)
@@ -210,7 +208,7 @@ class dishdetailView(View):
             "ingredients":ingredient,
             "ingd_cost":dish.ingd_cost
         }
-        print(dish_dict)
+        #print(dish_dict)
         # data = dicttoxml.dicttoxml(dish_dict, root = True, attr_type = False)
         # return http.HttpResponse(data)
         return http.JsonResponse(dish_dict)

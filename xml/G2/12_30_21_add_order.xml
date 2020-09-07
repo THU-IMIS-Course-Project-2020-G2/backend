@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<root>
+    <table_id>6</table_id>
+    <dishes>
+        <dish_id>103</dish_id>
+        <count>1</count>
+    </dishes>
+    <dishes>
+        <dish_id>202</dish_id>
+        <count>1</count>
+    </dishes>
+    <dishes>
+        <dish_id>204</dish_id>
+        <count>1</count>
+    </dishes>
+    <dishes>
+        <dish_id>304</dish_id>
+        <count>1</count>
+    </dishes>
+    <dishes>
+        <dish_id>307</dish_id>
+        <count>1</count>
+    </dishes>
+    <dishes>
+        <dish_id>309</dish_id>
+        <count>1</count>
+    </dishes>
+    <dishes>
+        <dish_id>705</dish_id>
+        <count>1</count>
+    </dishes>
+    <dishes>
+        <dish_id>707</dish_id>
+        <count>1</count>
+    </dishes>
+    <serial>00028258</serial>
+</root>

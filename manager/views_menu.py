@@ -187,7 +187,7 @@ class dish_menu_residue(View):
         current_dishes = dish_json['current_dishes']
         current_ingredient = dishingredient(current_dishes)
         dish_json = {"dishes":current_ingredient.left_current_ingredient()}
-        print(dish_json)
+        #print(dish_json)
         data = dicttoxml.dicttoxml(dish_json, root = True, attr_type = False)
         return http.HttpResponse(data)
         return http.JsonResponse(dish_json)
@@ -362,7 +362,7 @@ def remove_order(request):
             current_order_dish = order_detail.objects.filter(order_id = remove_order_id, dish_id = int(dish_detail['dish_id']))
             current_order_dish.update(dish_status = 3, waiting_list = -1)
             # 将之后的菜提前WL一位
-            later_orders = order_detail.objects.filter(station_id = current_station, waiting_list__gte = current_wl)
+            later_orders = order_detail.objects.filter(station_id = current_station, waiting_list__gt = current_wl)
             for later_order in later_orders:
                 later_order.waiting_list = later_order.waiting_list - 1
                 later_order.save()
@@ -380,11 +380,11 @@ def remove_order(request):
                 current_order_dish = order_detail.objects.filter(order_id = remove_order_id, dish_id = dish_detail['dish_id'])
                 current_order_dish.update(dish_status = 3, waiting_list = -1, ingd_cost = have_seconds/dish_time*current_dish.ingd_cost)
                 # 将之后的菜提前WL一位
-                later_orders = order_detail.objects.filter(station_id = current_station, waiting_list__gte = current_wl)
+                later_orders = order_detail.objects.filter(station_id = current_station, waiting_list__gt = 0)
                 for later_order in later_orders:
                     later_order.waiting_list = later_order.waiting_list - 1
-                    # 如果修改之后的WL值为1
-                    if later_order.waiting_list == 0:
+                    # 如果修改之前的WL值为1
+                    if later_order.waiting_list == 1:
                         later_order.dish_status = 4
                         later_order.start_time = datetime.now()
                         later_order.save()

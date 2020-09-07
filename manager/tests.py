@@ -132,7 +132,7 @@ def material_request(request):
     </raw_material>
     <raw_material>
         <ingredient_name>藕（克）</ingredient_name>
-        <ingredient_number>400</ingredient_number>
+        <ingredient_number>800</ingredient_number>
     </raw_material>
     <raw_material>
         <ingredient_name>黄瓜（克）</ingredient_name>
