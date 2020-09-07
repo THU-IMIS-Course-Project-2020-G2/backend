@@ -111,10 +111,10 @@ class kitchen_update():
         # 如果有WL = 1，选择一个最短的插入.
         for sid in range(start_point, end_point):
             if len(self.station_info[sid]) == 0:
-                if curr_waiting_time[sid] + add_time < insert_loc["waiting_time"]: 
+                if curr_waiting_time[sid - start_point] + add_time < insert_loc["waiting_time"]: 
                     insert_loc["sid"] = sid + 1
                     insert_loc["snum"] = 1
-                    insert_loc["waiting_time"] = curr_waiting_time[sid] + add_time
+                    insert_loc["waiting_time"] = curr_waiting_time[sid - start_point] + add_time 
         # 有WL = 1的情况
         if insert_loc["sid"] !=0:
             return insert_loc
@@ -368,8 +368,9 @@ class kitchen_update():
             if len(dish_time_hot) > 0:    
                 min_time_dish_hot = min(dish_time_hot, key = lambda k: dish_time_hot[k])
                 # 看情况是否选择计算
-                if np.random.rand() >= epsilon:
-                   dish_insert_hot = self.minimum_waiting_time_computation(order_info, dish_time[min_time_dish_hot], 1)
+                ## 如果随机选择或者本来没有冷菜
+                if np.random.rand() >= epsilon or len(dish_time_cold) == 0:
+                   dish_insert_hot = self.minimum_waiting_time_computation(order_info, dish_time_hot[min_time_dish_hot], 1)
 
             ## 找出其对应的count
             for dish_detail in order_dish:
@@ -377,13 +378,15 @@ class kitchen_update():
                 if dish_detail['dish_id'] == min_time_dish_cold:
                     alloc_id = dish_insert_cold["sid"]
                     alloc_wl = dish_insert_cold["snum"]
-                    
+                    self.insert_alloc(order_info, alloc_id, alloc_wl, dish_detail)
+
                 ## 最小时间且计算过的热菜
                 elif dish_detail['dish_id'] == min_time_dish_cold and len(dish_insert_hot) > 0:
                     alloc_id = dish_insert_hot["sid"]
                     alloc_wl = dish_insert_hot["snum"]
-                self.insert_alloc(order_info, alloc_id, alloc_wl, dish_detail)
-
+                    self.insert_alloc(order_info, alloc_id, alloc_wl, dish_detail)
+            # 存在没有点冷菜的可能
+            #print(dish_insert_cold)            
             ## 其他菜随机分配位置
             for dish_detail in order_dish:
                 if dish_detail['dish_id']!=min_time_dish_cold and dish_detail['dish_id']!=min_time_dish_hot:
@@ -401,18 +404,18 @@ class kitchen_update():
                     else:
                         current_waiting_number = len(order_detail.objects.filter(station_id = alloc_id, waiting_list__gt = 0)) + 1
                     # 随机进入队列, 但需要保证在最小菜的位置之后
-                        if alloc_id == dish_insert_cold["sid"]:
+                        if len(dish_insert_cold) > 0 and alloc_id == dish_insert_cold["sid"]:
                             alloc_wl = np.random.randint(dish_insert_cold['snum'] + 1, current_waiting_number + 1)
                         
                         elif len(dish_insert_hot) > 0 and alloc_id == dish_insert_hot["sid"]:
-                            alloc_wl = np.random.randint(dish_insert_cold['snum'] + 1, current_waiting_number + 1)
+                            alloc_wl = np.random.randint(dish_insert_hot['snum'] + 1, current_waiting_number + 1)
                         # 放在其他单号的最小时间菜的后面
                         else:
                             min_place = 1 ##该菜目前可放置的minimum WL
                             for orderid in self.order_wt.keys():
                                 ## 在这个alloc_id中存在之前被标记为最小时间的菜
-                                if alloc_id == self.order_wt[orderid]['sid'] and self.order_wt[orderid]['snum'] + 1>min_place:
-                                    min_place = self.order_wt[orderid]['snum'] + 1
+                                if alloc_id == self.order_wt[orderid]['sid'] and self.order_wt[orderid]['sloc'] + 1>min_place:
+                                    min_place = self.order_wt[orderid]['sloc'] + 1
                                 ## 选择最后一个单号最小时间的菜的位置之后（WITH MAX WL)
                             alloc_wl = np.random.randint(min_place, current_waiting_number + 1)
                     ## 插入并将原来WL之后的菜后移

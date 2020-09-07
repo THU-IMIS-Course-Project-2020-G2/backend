@@ -35,6 +35,9 @@ class dishingredient():
         # 该订单只有一个元素
         if type(self.current_dishes) == dict:
             self.current_dishes = [self.current_dishes]
+        # 该current_dish没有元素
+        elif self.current_dishes is None:
+            self.current_dishes = []
         self.fail_dishes = []
         self.ingredient_all = dict()
 

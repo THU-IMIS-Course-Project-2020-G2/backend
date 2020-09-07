@@ -92,15 +92,15 @@ def material_request(request):
     </raw_material>
     <raw_material>
         <ingredient_name>荔浦芋头（克）</ingredient_name>
-        <ingredient_number>200</ingredient_number>
+        <ingredient_number>500</ingredient_number>
     </raw_material>
     <raw_material>
         <ingredient_name>活白虾（克）</ingredient_name>
-        <ingredient_number>400</ingredient_number>
+        <ingredient_number>800</ingredient_number>
     </raw_material>
     <raw_material>
         <ingredient_name>番茄（克）</ingredient_name>
-        <ingredient_number>250</ingredient_number>
+        <ingredient_number>750</ingredient_number>
     </raw_material>
     <raw_material>
         <ingredient_name>花生米（克）</ingredient_name>
@@ -108,11 +108,11 @@ def material_request(request):
     </raw_material>
     <raw_material>
         <ingredient_name>白条湖鸭（克）</ingredient_name>
-        <ingredient_number>1000</ingredient_number>
+        <ingredient_number>2000</ingredient_number>
     </raw_material>
     <raw_material>
         <ingredient_name>鸡胸（克）</ingredient_name>
-        <ingredient_number>100</ingredient_number>
+        <ingredient_number>800</ingredient_number>
     </raw_material>
     <raw_material>
         <ingredient_name>纯瘦肉（克）</ingredient_name>
@@ -120,39 +120,39 @@ def material_request(request):
     </raw_material>
     <raw_material>
         <ingredient_name>牛柳（里脊）（克）</ingredient_name>
-        <ingredient_number>100</ingredient_number>
+        <ingredient_number>400</ingredient_number>
     </raw_material>
     <raw_material>
         <ingredient_name>花蛤（克）</ingredient_name>
-        <ingredient_number>100</ingredient_number>
+        <ingredient_number>500</ingredient_number>
     </raw_material>
     <raw_material>
         <ingredient_name>多宝鱼（克）</ingredient_name>
-        <ingredient_number>100</ingredient_number>
+        <ingredient_number>900</ingredient_number>
     </raw_material>
     <raw_material>
         <ingredient_name>藕（克）</ingredient_name>
-        <ingredient_number>100</ingredient_number>
+        <ingredient_number>400</ingredient_number>
     </raw_material>
     <raw_material>
         <ingredient_name>黄瓜（克）</ingredient_name>
-        <ingredient_number>100</ingredient_number>
+        <ingredient_number>500</ingredient_number>
     </raw_material>
     <raw_material>
         <ingredient_name>绿菜花（克）</ingredient_name>
-        <ingredient_number>100</ingredient_number>
+        <ingredient_number>500</ingredient_number>
     </raw_material>
         <raw_material>
         <ingredient_name>胡萝卜（克）</ingredient_name>
-        <ingredient_number>100</ingredient_number>
+        <ingredient_number>600</ingredient_number>
     </raw_material>
     <raw_material>
         <ingredient_name>莜麦面（克）</ingredient_name>
-        <ingredient_number>100</ingredient_number>
+        <ingredient_number>500</ingredient_number>
     </raw_material>
     <raw_material>
         <ingredient_name>东北大米（克）</ingredient_name>
-        <ingredient_number>100</ingredient_number>
+        <ingredient_number>800</ingredient_number>
     </raw_material>
     <raw_material>
         <ingredient_name>ef</ingredient_name>
@@ -160,7 +160,7 @@ def material_request(request):
     </raw_material>
     <raw_material>
         <ingredient_name>彩椒（克）</ingredient_name>
-        <ingredient_number>100</ingredient_number>
+        <ingredient_number>500</ingredient_number>
     </raw_material>
     <raw_material>
         <ingredient_name>柿子椒（克）</ingredient_name>
@@ -184,19 +184,19 @@ def material_request(request):
     </raw_material>
     <raw_material>
         <ingredient_name>土豆（克）</ingredient_name>
-        <ingredient_number>100</ingredient_number>
+        <ingredient_number>500</ingredient_number>
     </raw_material>
     <raw_material>
         <ingredient_name>好面缘面粉（克）</ingredient_name>
-        <ingredient_number>100</ingredient_number>
+        <ingredient_number>500</ingredient_number>
     </raw_material>
     <raw_material>
         <ingredient_name>泰国糯米（克）</ingredient_name>
-        <ingredient_number>100</ingredient_number>
+        <ingredient_number>600</ingredient_number>
     </raw_material>
     <raw_material>
         <ingredient_name>鸡蛋（只）</ingredient_name>
-        <ingredient_number>100</ingredient_number>
+        <ingredient_number>500</ingredient_number>
     </raw_material>
     <raw_material>
         <ingredient_name>红星二锅头（瓶）</ingredient_name>
