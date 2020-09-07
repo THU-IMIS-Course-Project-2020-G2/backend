@@ -22,7 +22,8 @@ class order_type(View):
                 'create_time':past_log.create_time.strftime('%Y%m%d %H:%M:%S')
             }
             all_log.append(past_log)
-        print(all_log)
+        #print(all_log)
+
         return http.JsonResponse({'all_log':all_log})
 
     # 新加的修改参数的请求
@@ -35,3 +36,16 @@ class order_type(View):
             return http.JsonResponse({"edit_status": 1})
         except Exception:
             return http.JsonResponse({"edit_status": 0})
+            
+## 查看起始界面最新的order_choice
+def order_type_new(request):
+    past_log = order_choice_log.objects.all().last()
+    past_log = {
+            'choice_id':past_log.choice_id,
+            'add_order_type':past_log.add_order_type,
+            'nudge_order_type':past_log.nudge_order_type,
+            'param':past_log.param,
+            'create_time':past_log.create_time.strftime('%Y%m%d %H:%M:%S')
+        }
+    print(past_log)
+    return http.JsonResponse({"all_log":past_log})

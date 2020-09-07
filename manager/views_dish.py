@@ -50,7 +50,8 @@ def check_ingredient(ingredients):
             ig_name = ig_detail['ingredient_name']
             ## 如果某个原材料严格不足，则标记success 均为失败.    
             if ig_name in all_remain_ingredient.keys():
-                success_status = max(min(success_status, int(all_remain_ingredient[ig_name]/ig_detail['ingredient_number'])), 0)
+                print(type(all_remain_ingredient[ig_name]), type(ig_detail['ingredient_number']))
+                success_status = max(min(success_status, int(all_remain_ingredient[ig_name]/float(ig_detail['ingredient_number']))), 0)
         ## 这样也能够达到手动沽清的作用
         return 1 - success_status
         
@@ -81,7 +82,7 @@ class dishView(View):
                 ## 如果某个原材料严格不足，则标记success 和sold_out_status均为失败.
                 ### *******下面这个if后续需要删除，仅作为样例使用*****************
                 #if ig_name in all_remain_ingredient.keys():
-                success_status = max(min(success_status, int(all_remain_ingredient[ig_name]/ig_detail['ingredient_number'])), 0) 
+                success_status = max(min(success_status, int(all_remain_ingredient[ig_name]/float(ig_detail['ingredient_number']))), 0) 
             # 更新售罄标志
             dish.objects.filter(dish_id = dish_set['dish_id']).update(success = 1 - success_status)
        
@@ -97,6 +98,7 @@ class dishView(View):
             }
             dish_list.append(dish)
         dish_list = {'dishes':dish_list}
+        print(dish_list)
         return http.JsonResponse(dish_list, safe = False)
 
     #添加某类菜品
@@ -166,7 +168,7 @@ class dishView(View):
                     #print(dish_info_new)
                     new_dish_ingredient.dish_id = dish_info_new
                     new_dish_ingredient.ingredient_name = name
-                    new_dish_ingredient.ingredient_number = ingredient_detail['ingredient_number']
+                    new_dish_ingredient.ingredient_number = float(ingredient_detail['ingredient_number'])
                     #print('test')
                     if ingredient_detail['ingredient_number'] != 0:
                         new_dish_ingredient.save()

@@ -22,8 +22,8 @@ urlpatterns = [
     url('^api/kitchen/workstation', views_kitchen.KitchenWorkstation.as_view()),
     #url('api/kitchen/finish', views_kitchen.KitchenFinish.as_view()),
     ## kitchen param management
-    url('^api/kitchen/order_type', views_order_param.order_type.as_view()),
-
+    url('^api/kitchen/order_type$', views_order_param.order_type.as_view()),
+    url('^api/kitchen/order_type_new$', views_order_param.order_type_new),
     # External 
     ## self test with menu, supply chain and robots
     url('g4/material$', tests.material_request),
