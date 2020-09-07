@@ -225,8 +225,10 @@ class dishdetailView(View):
         put_str = list(put.items())[0][0]
         put_dict = eval(put_str)
         dict_data = json.loads(request.body.decode())
+        # just in case
+        ## 设置图片不能修改
+        del dict_data['dish_pic']
         print(dict_data)
-        
         # 校验参数
         ## 没有这道菜
         try:
