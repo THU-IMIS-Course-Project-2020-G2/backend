@@ -1,5 +1,5 @@
 from django.conf.urls import url
-from manager import tests, views_dish, views_menu, views_kitchen, views_test, views_order_param
+from manager import views, tests, views_dish, views_menu, views_kitchen, views_test, views_order_param
 
 # dish + cook
 urlpatterns = [

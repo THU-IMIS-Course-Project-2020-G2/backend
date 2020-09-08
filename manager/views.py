@@ -5,6 +5,7 @@ from manager.models import *
 import requests
 # Create your views here.
 from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.schedulers.blocking import BlockingScheduler
 from django_apscheduler.jobstores import DjangoJobStore, register_events, register_job
 from django.db.models import Sum, Count, Max, Min, Avg
 import json
@@ -14,14 +15,27 @@ from manager.param import *
 
 # 实例化调度器
 scheduler = BackgroundScheduler()
+#scheduler = BlockingScheduler()
 # 调度器使用默认的DjangoJobStore()
 scheduler.add_jobstore(DjangoJobStore(), 'default')
 
-# 每隔一秒更新数据库
-@register_job(scheduler, 'interval', seconds = 1)
+#time_speed = order_choice_log.objects.all().last().param
+# 每隔param秒更新一次数据库
+@register_job(scheduler, 'interval', seconds = order_choice_log.objects.all().last().param)
 def kitchen_work():
     # 具体要执行的代码
     print(datetime.now().strftime('%Y%m%d %H:%M:%S'), '更新对应的排班记录!')
+    ## 异常控制
+    anomal_dishes = order_detail.objects.filter(dish_status = 0, waiting_list = 0)
+    # 移到该队列最后
+    for anomal_dish in anomal_dishes:
+        wl_max = order_detail.objects.filter(dish_status = 0, station_id = anomal_dish.station_id).aggregate(Max('waiting_list'))['waiting_list__max']
+        if wl_max == 0 and len(order_detail.objects.filter(dish_status = 4, station_id = anomal_dish.station_id)) == 0:
+            anomal_dish.start_time = datetime.now()
+            anomal_dish.dish_status = 4
+        else:
+            anomal_dish.waiting_list = wl_max + 1
+        anomal_dish.save()
     # try:
     current_dishes = order_detail.objects.filter(dish_status = 4)
     for current_dish in current_dishes:
@@ -46,7 +60,7 @@ def kitchen_work():
                 dish_name = dish.objects.get(dish_id = current_dish.dish_id).name
                 robot_info = {"order_id":current_dish.order_id.pk, "table_id":current_dish_log.table_id, "name":dish_name, "dish_count":current_dish.count}
                 robot_info = dicttoxml.dicttoxml(robot_info, root = True, attr_type = False)
-                print('tosee why?')
+                #print('tosee why?')
                 requests.post(url_robot, robot_info)
             ## 给前台（堂食, 菜）
                 url_order = base_url + 'g1/serve'
@@ -73,14 +87,14 @@ def kitchen_work():
                     takeout_info = dicttoxml.dicttoxml(takeout_info, root = True, attr_type = False)
                     requests.post(url_takeout, takeout_info)
             # 将之后的菜提前WL一位
-            later_orders = order_detail.objects.filter(station_id = current_dish.station_id, waiting_list__gte = 1)
+            later_orders = order_detail.objects.filter(station_id = current_dish.station_id, waiting_list__gt = 0)
             for later_order in later_orders:
-                later_order_wl = later_order.waiting_list
-                # 如果之前的WL值为1
-                if later_order_wl == 1:
-                    later_order.update(waiting_list = 0, dish_status = 4, start_time = datetime.now())
-                else:
-                    later_order.update(waiting_list = later_order_wl - 1)
+                later_order.waiting_list = later_order.waiting_list - 1
+                # 如果修改之前的WL值为1
+                if later_order.waiting_list == 0:
+                    later_order.dish_status = 4
+                    later_order.start_time = datetime.now()
+                later_order.save()
     # except Exception:
     #     print('目前所有的菜都做完了!')
 

@@ -384,10 +384,10 @@ def remove_order(request):
                 for later_order in later_orders:
                     later_order.waiting_list = later_order.waiting_list - 1
                     # 如果修改之前的WL值为1
-                    if later_order.waiting_list == 1:
+                    if later_order.waiting_list == 0:
                         later_order.dish_status = 4
                         later_order.start_time = datetime.now()
-                        later_order.save()
+                    later_order.save()
 
             # 剩余的并没有完全做完
             elif require_seconds > have_seconds:
