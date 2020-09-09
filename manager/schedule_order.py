@@ -255,6 +255,8 @@ class kitchen_update():
         add_type = order_choice_log.objects.all().last().add_order_type
         current_allocation = []
         order_info = all_order_log.objects.get(order_id = current_id)
+        if type(order_dish) == dict:
+            order_dish = [order_dish]
         ## 否则按照随机算法我目前会直接随机生成一个这样的序列
         if add_type == 0:
             for dish_detail in order_dish:
