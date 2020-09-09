@@ -180,7 +180,7 @@ class dish_menu(View):
         return http.JsonResponse(dish_json)
 
 class dish_menu_residue(View):
-    def get(self, request):
+    def post(self, request):
         from manager.models import dish
         #获取用户现在得到的current_dishes, 并将XML解析为json
         dish_json = xml_to_dict(request)

@@ -4,7 +4,7 @@ from django import http
 from django.views import View
 import json
 import pytz
-from django.db.models import Max, Q, Count
+from django.db.models import Max, Q, Count, Min
 from django.db import transaction
 from django.core import serializers
 from manager.param import *
@@ -47,10 +47,11 @@ class KitchenDish(View):
         print(all_dish_number)
         # 总共有5种状态的菜
         for did in range(5):
-            dish_status_count = {"dish_status": did}
-            dish_status_count['count'] = len(order_detail.objects.filter(dish_status = did))
-            dish_status_count['count_percent'] = dish_status_count['count']/all_dish_number
-            dish_status_count['count_id'] = len(order_detail.objects.filter(dish_status = did).values('order_id').distinct())/all_dish_id
+            dish_status_count = {"dish_status": did, "count":0, "count_percent":0, "count_id":0}
+            if all_dish_number != 0:
+                dish_status_count['count'] = len(order_detail.objects.filter(dish_status = did))
+                dish_status_count['count_percent'] = dish_status_count['count']/all_dish_number
+                dish_status_count['count_id'] = len(order_detail.objects.filter(dish_status = did).values('order_id').distinct())/all_dish_id
             dishes.append(dish_status_count)
         return http.JsonResponse({"dishes":dishes})
 
@@ -94,6 +95,7 @@ class kitchendetailView(View):
                 else:
                     order_info['finish_percent'] = 0
                 dishes.append(order_info)
+        #print(dishes)
         return http.JsonResponse({"dishes":dishes})
 
     # 查看某一订单的详情
@@ -133,25 +135,34 @@ class KitchenWorkstation(View):
                 sid_dict['current_status'] = 1
                 sid_dict['waiting_number'] = order_detail.objects.filter(station_id = sid).aggregate(Max('waiting_list'))['waiting_list__max']
             ### 计算工作量
-            sys_start_time = order_detail.objects.all().order_by('create_time').first().create_time
+            first_time = order_detail.objects.all().aggregate(Min('create_time'))['create_time__min']
+            #print(first_time)
+
+            ## 防止是空值
+            if first_time is None:
+                dishes.append(sid_dict)
+                continue
+            else:
+                sys_start_time = first_time
             #### 计算过去的总时间(从最早的订单开始, 计算秒数)
             
-            all_past_time = (datetime.now() - sys_start_time).seconds
+            all_past_time = (datetime.now() - sys_start_time).total_seconds()
             
             #### 计算该工位目前的工作时间
             #### 筛选出目前所有的完餐或正在做的菜
             all_work_time = 0
-            sid_info = order_detail.objects.filter(station_id = sid).exclude(dish_status = 0).exclude(dish_status = 1)
+            sid_info = order_detail.objects.filter(station_id = sid).exclude(dish_status = 0).exclude(dish_status = 1).exclude(dish_status = 3)
             for sid_detail in sid_info:
                 # 正在做
                 if sid_detail.dish_status == 4:
-                    all_work_time += (datetime.now() - sid_detail.start_time).seconds
+                    all_work_time += (datetime.now() - sid_detail.start_time).total_seconds()
                 # 已经做完
                 else:
-                    print(all_past_time, all_work_time, sid_detail.station_id, sid_detail.order_id, sid_detail.dish_id)
-                    all_work_time += (sid_detail.finish_time - sid_detail.start_time).seconds
+                    #print(all_past_time, all_work_time, sid_detail.station_id, sid_detail.order_id, sid_detail.dish_id)
+                    all_work_time += (sid_detail.finish_time - sid_detail.start_time).total_seconds()
             sid_dict['workload'] = all_work_time/all_past_time
             dishes.append(sid_dict)
+            #print(sid_dict['workload'])
         return http.JsonResponse({"dishes":dishes})
             
     ## 查看某一工位的具体信息
@@ -186,6 +197,7 @@ class kitchendetail(View):
     def post(self, request):
         try:
             dict_data = json.loads(request.body, strict = False)
+            print(dict_data)
             order_dish_info = order_detail.objects.get(order_id = dict_data['order_id'], dish_id = dict_data['dish_id'])
             print(order_dish_info)
             dish_info ={
@@ -195,7 +207,7 @@ class kitchendetail(View):
                 "count":order_dish_info.count,
                 "create_time":order_dish_info.create_time.strftime('%Y%m%d %H:%M:%S'),
                 "dish_status":order_dish_info.dish_status,
-                "start_time":order_dish_info.start_time.strftime('%Y%m%d %H:%M:%S'),
+                #"start_time":order_dish_info.start_time.strftime('%Y%m%d %H:%M:%S'),
                 "station_id":order_dish_info.station_id,
                 "waiting_list":order_dish_info.waiting_list,
                 "ingd_cost":order_dish_info.ingd_cost

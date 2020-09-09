@@ -7,10 +7,10 @@ import os, json
 import time
 # xml 自动化本地测试框架
 filepath = 'xml/G2/'
-base_url = 'http://124.70.178.153:8082/'
+base_url = 'http://127.0.0.1:8000/'
 
 xml_list = glob.glob(os.path.join(filepath, '*.xml'))
-for i in range(0, 300):
+for i in range(200, 300):
     #print(xml_list)
     time.sleep(0.01)
     xml_file = open(xml_list[i], 'r')
@@ -20,7 +20,7 @@ for i in range(0, 300):
     str_url = base_url + title_content
 
     if title_content == 'dish_residue':    
-        response = requests.get(str_url, xml_str)
+        response = requests.post(str_url, xml_str)
     else:
         response = requests.post(str_url, xml_str)
         time.sleep(0.5)
