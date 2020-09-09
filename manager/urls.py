@@ -1,5 +1,5 @@
 from django.conf.urls import url
-from manager import views, tests, views_dish, views_menu, views_kitchen, views_test, views_order_param
+from manager import tests, views_login, views_dish, views_menu, views_kitchen, views_test, views_order_param
 
 # dish + cook
 urlpatterns = [
@@ -24,6 +24,8 @@ urlpatterns = [
     ## kitchen param management
     url('^api/kitchen/order_type$', views_order_param.order_type.as_view()),
     url('^api/kitchen/order_type_new$', views_order_param.order_type_new),
+    ## login
+    url('^api/login$', views_login.login_check),
     # External 
     ## self test with menu, supply chain and robots
     url('g4/material$', tests.material_request),

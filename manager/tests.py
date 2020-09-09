@@ -195,8 +195,8 @@ def material_request(request):
         <ingredient_number>600</ingredient_number>
     </raw_material>
     <raw_material>
-        <ingredient_name>鸡蛋（只）</ingredient_name>
-        <ingredient_number>500</ingredient_number>
+        <ingredient_name>散鸡蛋（克）</ingredient_name>
+        <ingredient_number>900</ingredient_number>
     </raw_material>
     <raw_material>
         <ingredient_name>红星二锅头（瓶）</ingredient_name>

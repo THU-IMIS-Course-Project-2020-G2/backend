@@ -27,7 +27,7 @@ INSERT INTO `dish_ingredient` (id, ingredient_name, ingredient_number, dish_id_i
 INSERT INTO `dish_ingredient` (id, ingredient_name, ingredient_number, dish_id_id) VALUES(27,'番茄（克）',150.0,308);
 INSERT INTO `dish_ingredient` (id, ingredient_name, ingredient_number, dish_id_id) VALUES(28,'活白虾（克）',300.0,309);
 INSERT INTO `dish_ingredient` (id, ingredient_name, ingredient_number, dish_id_id) VALUES(29,'好面缘面粉（克）',100.0,309);
-INSERT INTO `dish_ingredient` (id, ingredient_name, ingredient_number, dish_id_id) VALUES(30,'鸡蛋（只）',200.0,401);
+INSERT INTO `dish_ingredient` (id, ingredient_name, ingredient_number, dish_id_id) VALUES(30,'散鸡蛋（克）',200.0,401);
 INSERT INTO `dish_ingredient` (id, ingredient_name, ingredient_number, dish_id_id) VALUES(31,'胡萝卜（克）',50.0,402);
 INSERT INTO `dish_ingredient` (id, ingredient_name, ingredient_number, dish_id_id) VALUES(32,'绿菜花（克）',300.0,402);
 INSERT INTO `dish_ingredient` (id, ingredient_name, ingredient_number, dish_id_id) VALUES(33,'空心菜（克）',300.0,403);
@@ -39,7 +39,7 @@ INSERT INTO `dish_ingredient` (id, ingredient_name, ingredient_number, dish_id_i
 INSERT INTO `dish_ingredient` (id, ingredient_name, ingredient_number, dish_id_id) VALUES(39,'纯瘦肉（克）',50.0,406);
 INSERT INTO `dish_ingredient` (id, ingredient_name, ingredient_number, dish_id_id) VALUES(40,'茄子（克）',300.0,406);
 INSERT INTO `dish_ingredient` (id, ingredient_name, ingredient_number, dish_id_id) VALUES(41,'韭菜（克）',250.0,407);
-INSERT INTO `dish_ingredient` (id, ingredient_name, ingredient_number, dish_id_id) VALUES(42,'鸡蛋（只）',100.0,407);
+INSERT INTO `dish_ingredient` (id, ingredient_name, ingredient_number, dish_id_id) VALUES(42,'散鸡蛋（克）',100.0,407);
 INSERT INTO `dish_ingredient` (id, ingredient_name, ingredient_number, dish_id_id) VALUES(43,'纯排骨（克）',200.0,501);
 INSERT INTO `dish_ingredient` (id, ingredient_name, ingredient_number, dish_id_id) VALUES(44,'番茄（克）',200.0,501);
 INSERT INTO `dish_ingredient` (id, ingredient_name, ingredient_number, dish_id_id) VALUES(45,'土豆（克）',200.0,501);

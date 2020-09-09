@@ -162,7 +162,7 @@ class dish_menu(View):
     def get(self, request):
         from manager.models import dish
        
-        dishes = dish.objects.all()
+        dish_list = list(dish.objects.all().values())
         dish_list = []
         for dish in dishes:
             dish = {
@@ -212,7 +212,8 @@ def add_order(request):
         print('向仓库发出库单!')
         ## 发给供应链的格式转化
         max_id = all_order_log.objects.all().aggregate(Max('order_id'))['order_id__max']
-
+        if type(max_id) != int:
+            max_id = 0
         all_consumption = order_ingredient.ingredient_all
         all_consumption_list = []
         for item in all_consumption.keys():
