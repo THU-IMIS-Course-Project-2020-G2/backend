@@ -10,7 +10,7 @@ filepath = 'xml/G2/'
 base_url = 'http://124.70.178.153:8082/'
 
 xml_list = glob.glob(os.path.join(filepath, '*.xml'))
-for i in range(0, 100):
+for i in range(0, 300):
     #print(xml_list)
     time.sleep(0.01)
     xml_file = open(xml_list[i], 'r')
