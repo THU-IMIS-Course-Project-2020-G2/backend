@@ -10,9 +10,9 @@ filepath = 'xml/G2/'
 base_url = 'http://124.70.178.153:8082/'
 
 xml_list = glob.glob(os.path.join(filepath, '*.xml'))
-for i in range(4, 5):
+for i in range(0, 200):
     #print(xml_list)
-    time.sleep(0.01)
+    time.sleep(0.05)
     xml_file = open(xml_list[i], 'r')
     xml_str = xml_file.read()
     #print(type(xml_str))
@@ -23,7 +23,7 @@ for i in range(4, 5):
         response = requests.post(str_url, xml_str)
     else:
         response = requests.post(str_url, xml_str)
-        time.sleep(0.5)
+        time.sleep(1.5)
     print(xml_list[i][7:16], 'receive successfully!')
     #if xml_list[i][12]
     jsonstr = xmltodict.parse(response.text)

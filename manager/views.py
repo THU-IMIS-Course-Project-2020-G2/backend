@@ -83,7 +83,7 @@ def kitchen_work():
                 ## 给前台（外卖, 单）
                     url_takeout = base_url + 'g1/deliver_takeout'
                     takeout_id = all_order_log.objects.get(order_id = dish_order_id).takeout
-                    takeout_info = {"order_id":dish_order_id, "deliver_time":dish_finish_time}
+                    takeout_info = {"takeout_id":takeout_id, "deliver_time":dish_finish_time}
                     takeout_info = dicttoxml.dicttoxml(takeout_info, root = True, attr_type = False)
                     requests.post(url_takeout, takeout_info)
             # 将之后的菜提前WL一位
