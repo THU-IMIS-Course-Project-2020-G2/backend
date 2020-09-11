@@ -224,7 +224,7 @@ def add_order(request):
         scm_order = dicttoxml.dicttoxml(scm_order, root = True, attr_type = False)
         # 向仓库发送POST请求 confirm_order_scm
         url = base_url + 'g4/confirm_order_scm'
-        r = requests.post(url, scm_order)
+        r = requests.post(url, scm_order, headers = header)
         # 向自己的数据库添加数据
         ## 在all_order_log中插入该条下单记录
         all_order_log.objects.create(order_id = max_id + 1, order_type = 0, table_id = table_id, serial = serial_number, takeout = -1)
@@ -271,7 +271,7 @@ def add_takeout(request):
         scm_order = dicttoxml.dicttoxml(scm_order, root = True, attr_type = False)
         
         url = base_url + 'g4/confirm_order_scm'
-        r = requests.post(url, scm_order)
+        r = requests.post(url, scm_order, headers = header)
         # 向自己的数据库添加数据
         ## 在all_order_log中插入该条下单记录
         all_order_log.objects.create(order_id = max_id + 1, order_type = 1, table_id = -1, serial = -1, takeout = takeout_id)
@@ -303,7 +303,7 @@ def confirm_takeout(request):
     scm_takeout = {"order_id": order_id_pre, "action":dict_data['action'], "raw_material":all_consumption_list}
     scm_takeout = dicttoxml.dicttoxml(scm_takeout, root = True, attr_type = False)
     url = base_url + 'g4/confirm_takeout_scm'
-    r = requests.post(url, scm_takeout)
+    r = requests.post(url, scm_takeout, headers = header)
     print("action",dict_data['action'])
     if int(dict_data['action']) == 0:
         print('外卖正式出库！')

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<root>
+    <table_id>5</table_id>
+    <deliver_time>20200621 19:23:23 </deliver_time>
+    <dishes>
+        <dish_id>102</dish_id>
+        <count>1</count>
+    </dishes>
+    <serial>15</serial>
+</root>

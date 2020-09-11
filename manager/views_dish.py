@@ -40,7 +40,7 @@ def check_ingredient(ingredients):
         scm_request = {"add_material":add_material}
         data = dicttoxml.dicttoxml(scm_request, root = True, attr_type = False)
         #return http.HttpResponse(data)
-        requests.post(url_add_material,data)
+        requests.post(url_add_material,data, headers = header)
         return 1
 
     ## 原材料不够

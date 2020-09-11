@@ -61,12 +61,12 @@ def kitchen_work():
                 robot_info = {"order_id":current_dish.order_id.pk, "table_id":current_dish_log.table_id, "name":dish_name, "dish_count":current_dish.count}
                 robot_info = dicttoxml.dicttoxml(robot_info, root = True, attr_type = False)
                 #print('tosee why?')
-                requests.post(url_robot, robot_info)
+                requests.post(url_robot, robot_info, headers = header)
             ## 给前台（堂食, 菜）
                 url_order = base_url + 'g1/serve'
                 table_info = {"table_id":current_dish_log.table_id, "deliver_time":dish_finish_time,"dishes":[{"dish_id":current_dish.dish_id, "count":current_dish.count}], "serial":current_dish_log.serial}
                 table_info = dicttoxml.dicttoxml(table_info, root = True, attr_type = False)
-                requests.post(url_order, table_info)
+                requests.post(url_order, table_info, headers = header)
             
             dish_order_id = current_dish.order_id.pk
             ## 判断这一单的菜是否全做完, 是否有正在等候等情况的菜
@@ -78,14 +78,14 @@ def kitchen_work():
                 order_total_cost = order_detail.objects.filter(order_id = dish_order_id).aggregate(Sum('ingd_cost'))['ingd_cost__sum']
                 account_info = {"order_id":dish_order_id, "ingd_cost":order_total_cost, "finish_time":dish_finish_time}
                 account_info = dicttoxml.dicttoxml(account_info, root = True, attr_type = False)
-                requests.post(url_account, account_info)
+                requests.post(url_account, account_info, headers = header)
                 if current_dish_log.order_type == 1:
                 ## 给前台（外卖, 单）
                     url_takeout = base_url + 'g1/deliver_takeout'
                     takeout_id = all_order_log.objects.get(order_id = dish_order_id).takeout
                     takeout_info = {"takeout_id":takeout_id, "deliver_time":dish_finish_time}
                     takeout_info = dicttoxml.dicttoxml(takeout_info, root = True, attr_type = False)
-                    requests.post(url_takeout, takeout_info)
+                    requests.post(url_takeout, takeout_info, headers = header)
             # 将之后的菜提前WL一位
             later_orders = order_detail.objects.filter(station_id = current_dish.station_id, waiting_list__gt = 0)
             for later_order in later_orders:
