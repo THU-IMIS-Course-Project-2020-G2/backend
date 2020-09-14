@@ -45,3 +45,21 @@ The default port in this package is http://127.0.0.1:8080. To deploy in the Huaw
 Besides, the ```views_test.py``` and ```tests.py``` are used for simulation tests.
 
 Another remind is that the ```json``` dict after resolution from ```xml``` is all dictionary. We might better change the necessary properties into int or float in case of troubles.
+
+# 基于Vue.js和Element-ui的商城后台管理系统
+> ## 1. 在官网https://nodejs.org/zh-cn/下载并安装Node.js。
+> ## 2. 安装完成通过命令node -v查看node版本，若出现相应版本号，则安装成功。
+> ## 3. 安装Vue CLI，命令行输入 npm install -g @vue/cli
+> ## 4.项目运行：
+- git clone 到本地
+- cd 到 frontend目录下运行:
+
+```
+npm install
+```
+- 运行：
+
+```
+npm run serve
+```
+- 浏览器打开 http://localhost:8080/ 
